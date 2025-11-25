@@ -16,7 +16,7 @@ def show_onboarding():
         # Already onboarded, redirect to quests
         return redirect(url_for('quests.list_quests'))
     
-    return render_template('onboarding.html')
+    return render_template('onboarding.html', user=user)
 
 @onboarding_bp.route('/complete', methods=['POST'])
 def complete_onboarding():
@@ -27,6 +27,7 @@ def complete_onboarding():
     
     data = request.get_json()
     email = data.get('email')
+    last_name = data.get('last_name', '').strip()
     terms_accepted = data.get('terms_accepted', False)
     
     if not email:
@@ -47,6 +48,8 @@ def complete_onboarding():
         return jsonify({'error': 'User not found'}), 404
     
     user.email = email
+    if last_name:
+        user.last_name = last_name
     user.is_onboarded = True
     user.terms_accepted = True
     user.terms_accepted_at = datetime.utcnow()

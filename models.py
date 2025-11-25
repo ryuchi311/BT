@@ -8,6 +8,7 @@ class User(db.Model):
     telegram_id = db.Column(db.String(64), unique=True, nullable=False)
     username = db.Column(db.String(64), nullable=True)
     first_name = db.Column(db.String(64), nullable=True)
+    last_name = db.Column(db.String(64), nullable=True)
     photo_url = db.Column(db.String(256), nullable=True)
     email = db.Column(db.String(128), nullable=True)  # User email for onboarding
     is_onboarded = db.Column(db.Boolean, default=False)  # Has completed onboarding
@@ -24,6 +25,8 @@ class User(db.Model):
             'id': self.id,
             'telegram_id': self.telegram_id,
             'username': self.username,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
             'xp': self.xp,
             'points': self.points
         }
