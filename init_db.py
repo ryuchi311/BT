@@ -1,5 +1,5 @@
 from app import app, db
-from models import User, Quest, SystemSetting
+from models import User, Quest, Reward, SystemSetting
 
 with app.app_context():
     db.create_all()
@@ -47,6 +47,37 @@ with app.app_context():
             )
         ]
         db.session.add_all(quests)
+        
+    # Create sample rewards
+    if not Reward.query.first():
+        rewards = [
+            Reward(
+                title='Amazon Gift Card $10',
+                description='Digital code for Amazon US store',
+                cost=500,
+                image_url='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2560px-Amazon_logo.svg.png',
+                stock=10,
+                category='Voucher'
+            ),
+            Reward(
+                title='Premium Sticker Pack',
+                description='Exclusive Telegram sticker pack',
+                cost=100,
+                image_url='https://cdn-icons-png.flaticon.com/512/4712/4712109.png',
+                stock=None, # Unlimited
+                category='Digital'
+            ),
+            Reward(
+                title='Discord Nitro 1 Month',
+                description='Boost your Discord experience',
+                cost=1000,
+                image_url='https://assets-global.website-files.com/6257adef93867e56f84d3092/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png',
+                stock=5,
+                category='Voucher'
+            )
+        ]
+        db.session.add_all(rewards)
+        print("Added sample rewards")
         
     db.session.commit()
     print("Database initialized with sample data!")
