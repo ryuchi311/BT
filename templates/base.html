@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest Hub</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(20, 20, 30, 0.9);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 50;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6a6a6a;
+        }
+    </style>
+</head>
+
+<body class="pb-20 pt-20">
+    <!-- Fixed Header -->
+    <header
+        class="fixed top-0 left-0 right-0 z-40 bg-[#0f0c29]/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-center shadow-lg">
+        <div class="container mx-auto px-4 flex items-center justify-center">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BRGY Logo"
+                class="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </div>
+
+    <nav class="bottom-nav flex justify-around py-3">
+        <a href="{{ url_for('main.index') }}" class="flex flex-col items-center text-gray-400 hover:text-white">
+            <span class="text-xl">🏠</span>
+            <span class="text-xs">Home</span>
+        </a>
+        <a href="{{ url_for('quests.list_quests') }}" class="flex flex-col items-center text-gray-400 hover:text-white">
+            <span class="text-xl">📜</span>
+            <span class="text-xs">Quests</span>
+        </a>
+        <a href="{{ url_for('rewards.list_rewards') }}" class="flex flex-col items-center text-gray-400 hover:text-white">
+            <span class="text-xl">🎁</span>
+            <span class="text-xs">Rewards</span>
+        </a>
+        <a href="{{ url_for('main.leaderboard') }}" class="flex flex-col items-center text-gray-400 hover:text-white">
+            <span class="text-xl">🏆</span>
+            <span class="text-xs">Rank</span>
+        </a>
+    </nav>
+
+    <!-- Global Modal -->
+    <div id="globalModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <!-- Background backdrop -->
+        <div class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
+        </div>
+
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <!-- Modal panel -->
+                <div class="relative transform overflow-hidden rounded-2xl bg-[#1a1a2e] border border-white/10 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    id="modalPanel">
+                    <div class="bg-[#1a1a2e] px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div
+                                class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                                <span class="text-2xl">✨</span>
+                            </div>
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-xl font-semibold leading-6 text-white" id="modalTitle">
+                                    Notification
+                                </h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-300" id="modalMessage">
+                                        Message goes here...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-[#151525] px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="button" id="modalOkBtn"
+                            class="inline-flex w-full justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto transition-colors">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Modal Logic
+        const modal = document.getElementById('globalModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+        const titleEl = document.getElementById('modalTitle');
+        const messageEl = document.getElementById('modalMessage');
+        const okBtn = document.getElementById('modalOkBtn');
+        let currentCallback = null;
+
+        function showModal(title, message, callback) {
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            currentCallback = callback;
+
+            modal.classList.remove('hidden');
+            // Small delay to allow display:block to apply before opacity transition
+            setTimeout(() => {
+                backdrop.classList.remove('opacity-0');
+                panel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+                panel.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
+            }, 10);
+        }
+
+        function hideModal() {
+            backdrop.classList.add('opacity-0');
+            panel.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
+            panel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (currentCallback) {
+                    currentCallback();
+                    currentCallback = null;
+                }
+            }, 300); // Match transition duration
+        }
+
+        okBtn.addEventListener('click', hideModal);
+    </script>
+</body>
+
+</html>

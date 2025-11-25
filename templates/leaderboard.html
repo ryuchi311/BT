@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6 text-center">🏆 Leaderboard</h1>
+
+<div class="bg-gray-800 rounded-lg overflow-hidden">
+    {% for user in users %}
+    <div class="flex items-center justify-between p-4 border-b border-gray-700 last:border-0">
+        <div class="flex items-center space-x-4">
+            <span class="text-xl font-bold w-6 text-center">{{ loop.index }}</span>
+            <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                {{ user.username[0] if user.username else '?' }}
+            </div>
+            <span class="font-bold">{{ user.username or 'Unknown' }}</span>
+        </div>
+        <span class="text-yellow-400 font-bold">{{ user.points }} pts</span>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed top-20 right-4 z-[60] space-y-3"></div>
+
+<script>
+    // Toast Notification System
+    function showToast(message, type = 'success') {
+        const toastContainer = document.getElementById('toast-container');
+
+        // Define toast styles based on type
+        const styles = {
+            success: {
+                bg: 'bg-green-500',
+                icon: '✓',
+                iconBg: 'bg-green-600'
+            },
+            error: {
+                bg: 'bg-red-500',
+                icon: '✕',
+                iconBg: 'bg-red-600'
+            },
+            warning: {
+                bg: 'bg-yellow-500',
+                icon: '⚠',
+                iconBg: 'bg-yellow-600'
+            },
+            info: {
+                bg: 'bg-blue-500',
+                icon: 'ℹ',
+                iconBg: 'bg-blue-600'
+            }
+        };
+
+        const style = styles[type] || styles.info;
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `flex items-center w-full max-w-xs p-4 text-white ${style.bg} rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+        toast.innerHTML = `
+            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 ${style.iconBg} rounded-lg">
+                <span class="text-lg font-bold">${style.icon}</span>
+            </div>
+            <div class="ml-3 text-sm font-semibold">${message}</div>
+            <button type="button" class="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 hover:bg-white/20 transition-colors" onclick="this.parentElement.remove()">
+                <span class="sr-only">Close</span>
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        `;
+
+        toastContainer.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full');
+        }, 10);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
+    // Global function to show success toast
+    window.showSuccess = (message) => showToast(message, 'success');
+    window.showError = (message) => showToast(message, 'error');
+    window.showWarning = (message) => showToast(message, 'warning');
+    window.showInfo = (message) => showToast(message, 'info');
+</script>

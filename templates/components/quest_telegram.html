@@ -1,0 +1,173 @@
+<!-- Telegram Quest Modal -->
+<div id="telegramQuestModal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm transition-opacity" onclick="closeTelegramModal()"></div>
+
+    <!-- Modal Content -->
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div
+                class="relative transform overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-blue-500/30 shadow-2xl transition-all w-full max-w-md">
+
+                <!-- Header with Telegram Branding -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                <i class="fab fa-telegram text-blue-600 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white" id="tg-quest-title">Telegram Quest</h3>
+                                <p class="text-blue-100 text-sm" id="tg-quest-points">+0 XP</p>
+                            </div>
+                        </div>
+                        <button onclick="closeTelegramModal()" class="text-white hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="px-6 py-6 space-y-4">
+                    <!-- Quest Description -->
+                    <div class="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <h4 class="text-white font-semibold mb-2 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-blue-400"></i>
+                            Quest Details
+                        </h4>
+                        <p class="text-gray-300 text-sm" id="tg-quest-description">Join our Telegram channel to stay
+                            updated!</p>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div class="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                        <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
+                            <i class="fas fa-list-check text-blue-400"></i>
+                            How to Complete
+                        </h4>
+                        <ol class="space-y-2 text-gray-300 text-sm">
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-400 font-bold">1.</span>
+                                <span>Click the "Open Telegram" button below</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-400 font-bold">2.</span>
+                                <span>Join the channel/group</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-400 font-bold">3.</span>
+                                <span>Enter your Telegram username below</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-400 font-bold">4.</span>
+                                <span>Click "Submit" to verify and earn points!</span>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <!-- Action Button -->
+                    <a id="tg-action-link" href="#" target="_blank"
+                        class="block w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-center py-3 rounded-lg font-bold transition-all transform hover:scale-105 shadow-lg">
+                        <i class="fab fa-telegram mr-2"></i>
+                        Open Telegram
+                    </a>
+
+                    <!-- Verification Input -->
+                    <div>
+                        <label class="block text-gray-300 text-sm font-semibold mb-2">
+                            <i class="fas fa-user mr-1 text-blue-400"></i>
+                            Your Telegram Username
+                        </label>
+                        <input type="text" id="tg-username-input" placeholder="@username"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all">
+                        <p class="text-gray-400 text-xs mt-1">We'll verify your membership</p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-[#151525] px-6 py-4 flex gap-3">
+                    <button onclick="closeTelegramModal()"
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="submitTelegramQuest()"
+                        class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-check mr-2"></i>
+                        Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentTelegramQuest = null;
+
+    function openTelegramQuest(questId, title, description, points, actionUrl) {
+        currentTelegramQuest = questId;
+        document.getElementById('tg-quest-title').textContent = title;
+        document.getElementById('tg-quest-description').textContent = description;
+        document.getElementById('tg-quest-points').textContent = `+${points} XP`;
+        document.getElementById('tg-action-link').href = actionUrl || '#';
+        document.getElementById('tg-username-input').value = '';
+        document.getElementById('telegramQuestModal').classList.remove('hidden');
+    }
+
+    function closeTelegramModal() {
+        document.getElementById('telegramQuestModal').classList.add('hidden');
+        currentTelegramQuest = null;
+    }
+
+    function submitTelegramQuest() {
+        const username = document.getElementById('tg-username-input').value.trim();
+
+        if (!username) {
+            showModal('Error', 'Please enter your Telegram username');
+            return;
+        }
+
+        if (!username.startsWith('@')) {
+            showModal('Error', 'Username must start with @');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = event.currentTarget;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+        submitBtn.disabled = true;
+
+        // Submit verification
+        fetch(`/quests/complete/${currentTelegramQuest}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                platform: 'telegram',
+                proof_data: {
+                    username: username
+                }
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    closeTelegramModal();
+                    showModal('Quest Completed!', `You earned ${data.points_earned} points!`, () => {
+                        location.reload();
+                    });
+                } else {
+                    showModal('Error', data.error || 'Failed to complete quest');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                showModal('Error', 'Network error. Please try again.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+    }
+</script>

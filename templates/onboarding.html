@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+    <div class="max-w-md w-full">
+        <!-- Welcome Card -->
+        <div class="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl border border-blue-500/30 shadow-2xl p-8">
+
+            <!-- Logo/Icon -->
+            <div class="text-center mb-6">
+                <div
+                    class="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-gamepad text-4xl text-white"></i>
+                </div>
+                <h1
+                    class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                    Welcome to Quest Hub!
+                </h1>
+                <p class="text-gray-400 mt-2">Complete quests, earn rewards, and climb the leaderboard</p>
+            </div>
+
+            <!-- Onboarding Form -->
+            <form id="onboardingForm" class="space-y-6">
+
+                <!-- Email Input -->
+                <div>
+                    <label class="block text-white font-semibold mb-2">
+                        <i class="fas fa-envelope text-blue-400 mr-2"></i>
+                        Email Address
+                    </label>
+                    <input type="email" id="email" name="email" required placeholder="your@email.com"
+                        class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all">
+                    <p class="text-gray-400 text-xs mt-1">We'll use this to send you important updates</p>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="bg-white/5 rounded-lg p-4 border border-white/10 max-h-48 overflow-y-auto">
+                    <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+                        <i class="fas fa-file-contract text-blue-400"></i>
+                        Terms & Conditions
+                    </h3>
+                    <div class="text-gray-300 text-sm space-y-2">
+                        <p><strong>1. Acceptance of Terms</strong></p>
+                        <p>By participating in Quest Hub, you agree to complete quests honestly and follow all platform
+                            rules.</p>
+
+                        <p class="mt-3"><strong>2. Quest Participation</strong></p>
+                        <p>You must complete quests genuinely. Fraudulent activity will result in account suspension and
+                            forfeiture of points.</p>
+
+                        <p class="mt-3"><strong>3. Rewards & Points</strong></p>
+                        <p>Points earned can be redeemed for rewards as available. Points have no cash value and cannot
+                            be transferred.</p>
+
+                        <p class="mt-3"><strong>4. Privacy</strong></p>
+                        <p>We collect your email and Telegram information to manage your account. We will not share your
+                            data with third parties without consent.</p>
+
+                        <p class="mt-3"><strong>5. Account Termination</strong></p>
+                        <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>
+
+                        <p class="mt-3"><strong>6. Changes to Terms</strong></p>
+                        <p>We may update these terms at any time. Continued use constitutes acceptance of updated terms.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Agreement Checkbox -->
+                <div class="flex items-start gap-3">
+                    <input type="checkbox" id="terms" name="terms" required
+                        class="mt-1 w-5 h-5 rounded border-gray-600 bg-white/10 text-blue-600 focus:ring-2 focus:ring-blue-500">
+                    <label for="terms" class="text-gray-300 text-sm">
+                        I have read and agree to the <span class="text-blue-400 font-semibold">Terms & Conditions</span>
+                        and confirm that I will participate honestly in all quests.
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit"
+                    class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-blue-500/50">
+                    <i class="fas fa-rocket mr-2"></i>
+                    Start Participating
+                </button>
+            </form>
+
+            <!-- Footer Note -->
+            <p class="text-center text-gray-500 text-xs mt-6">
+                By clicking "Start Participating", you confirm you're ready to begin your quest journey
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('onboardingForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const terms = document.getElementById('terms').checked;
+
+        if (!terms) {
+            showModal('Error', 'Please accept the terms and conditions to continue');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch('/onboarding/complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, terms_accepted: true })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Redirect to quest list
+                window.location.href = '/quests/';
+            } else {
+                showModal('Error', data.error || 'Failed to complete onboarding');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        } catch (error) {
+            showModal('Error', 'Network error. Please try again.');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Quest Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .modal {
+            display: none;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-white mb-2">Quest Management</h1>
+                <p class="text-gray-400">Create and manage platform quests</p>
+            </div>
+            <button id="addQuestBtn"
+                class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-bold text-lg transition-all transform hover:scale-105 shadow-lg flex items-center gap-2">
+                <span class="text-2xl">➕</span> Add New Quest
+            </button>
+        </div>
+
+        <!-- Quest Cards Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {% for quest in quests %}
+            <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:scale-[1.02]
+                {% if not quest.is_active %}opacity-60{% endif %}">
+                <!-- Card Header -->
+                <div class="p-4 bg-gradient-to-r
+                    {% if quest.quest_type == 'telegram' %}from-blue-600/20 to-blue-500/10 border-b border-blue-500/20
+                    {% elif quest.quest_type == 'twitter' %}from-sky-600/20 to-sky-500/10 border-b border-sky-500/20
+                    {% elif quest.quest_type == 'youtube' %}from-red-600/20 to-red-500/10 border-b border-red-500/20
+                    {% else %}from-green-600/20 to-green-500/10 border-b border-green-500/20{% endif %}">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-3xl">
+                            {% if quest.quest_type == 'telegram' %}✈️
+                            {% elif quest.quest_type == 'twitter' %}🐦
+                            {% elif quest.quest_type == 'youtube' %}▶️
+                            {% else %}🔗{% endif %}
+                        </span>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold
+                                {% if quest.quest_type == 'telegram' %}bg-blue-500/30 text-blue-200
+                                {% elif quest.quest_type == 'twitter' %}bg-sky-500/30 text-sky-200
+                                {% elif quest.quest_type == 'youtube' %}bg-red-500/30 text-red-200
+                                {% else %}bg-green-500/30 text-green-200{% endif %}">
+                                {{ quest.quest_type.upper() }}
+                            </span>
+                            {% if quest.category %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/30 text-purple-200">
+                                {{ quest.category }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="p-4 space-y-3">
+                    <h3 class="text-xl font-bold text-white">{{ quest.title }}</h3>
+                    <p class="text-sm text-gray-300 line-clamp-2">{{ quest.description or 'No description' }}</p>
+
+                    <div class="space-y-2 text-sm">
+                        {% if quest.action_url %}
+                        <div class="flex items-start gap-2">
+                            <span class="text-gray-400 w-16 flex-shrink-0">🔗 Link:</span>
+                            <a href="{{ quest.action_url }}" target="_blank"
+                                class="text-blue-400 hover:text-blue-300 truncate flex-1">
+                                {{ quest.action_url }}
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% if quest.verification_data %}
+                        <div class="flex items-start gap-2">
+                            <span class="text-gray-400 w-16 flex-shrink-0">✓ Verify:</span>
+                            <span class="text-gray-200 truncate flex-1">{{ quest.verification_data }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 border-t border-white/10">
+                        <div class="flex items-center gap-3">
+                            <span class="text-yellow-400 font-bold text-lg">💰 {{ quest.points }}</span>
+                            {% if quest.expires_at %}
+                            <span class="text-xs text-gray-400">⏰ {{ quest.expires_at.strftime('%Y-%m-%d') }}</span>
+                            {% endif %}
+                        </div>
+                        {% if not quest.is_active %}
+                        <span class="text-xs text-red-400 font-semibold">INACTIVE</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Card Actions -->
+                <div class="p-4 bg-white/5 border-t border-white/10 flex gap-2">
+                    <button
+                        class="edit-quest-btn flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold text-sm transition-colors"
+                        data-quest-id="{{ quest.id }}">
+                        ✏️ Edit
+                    </button>
+                    <button
+                        class="toggle-quest-btn flex-1 {% if quest.is_active %}bg-yellow-600 hover:bg-yellow-700{% else %}bg-green-600 hover:bg-green-700{% endif %} text-white px-3 py-2 rounded-lg font-semibold text-sm transition-colors"
+                        data-quest-id="{{ quest.id }}" data-is-active="{{ 'true' if quest.is_active else 'false' }}">
+                        {% if quest.is_active %}⚡ Disable{% else %}✓ Enable{% endif %}
+                    </button>
+                    <button
+                        class="delete-quest-btn bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-semibold text-sm transition-colors"
+                        data-quest-id="{{ quest.id }}">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not quests %}
+            <div class="col-span-full text-center py-16">
+                <p class="text-gray-400 text-xl mb-4">No quests yet</p>
+                <p class="text-gray-500">Click "Add New Quest" to create your first quest</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add/Edit Quest Modal -->
+    <div id="questModal" class="modal fixed inset-0 z-50 items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div
+            class="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-2xl p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold text-white">Add New Quest</h2>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-white text-2xl">✕</button>
+            </div>
+
+            <form id="questForm" method="POST" class="space-y-4">
+                <input type="hidden" id="questId" name="quest_id">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Title *</label>
+                        <input type="text" name="title" id="questTitle" required
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Quest title">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Description *</label>
+                        <textarea name="description" id="questDescription" rows="2" required
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Quest description"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Platform *</label>
+                        <select name="platform" id="questPlatform" required
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="">Select...</option>
+                            <option value="telegram">✈️ Telegram</option>
+                            <option value="twitter">🐦 Twitter</option>
+                            <option value="youtube">▶️ YouTube</option>
+                            <option value="visit">🔗 Website</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Category *</label>
+                        <select name="category" id="questCategory" required
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="">Select...</option>
+                            <option value="Social">📱 Social</option>
+                            <option value="Engagement">💬 Engagement</option>
+                            <option value="Educational">📚 Educational</option>
+                            <option value="Reward">🎁 Reward</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Points *</label>
+                        <input type="number" name="points" id="questPoints" min="1" required
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="50">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Expiration (Optional)</label>
+                        <input type="datetime-local" name="expires_at" id="questExpires"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Link/URL *</label>
+                        <input type="url" name="action_url" id="questUrl" required
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="https://">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Verification Data
+                            (Optional)</label>
+                        <input type="text" name="verification_data" id="questVerification"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Channel ID, Tweet ID, etc.">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="submit"
+                        class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-bold transition-all">
+                        Save Quest
+                    </button>
+                    <button type="button" id="cancelModalBtn"
+                        class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quest Data JSON -->
+    <script type="application/json" id="questDataJson">
+        {{ quests_data | tojson }}
+    </script>
+
+    <!-- URLs for JS -->
+    <script type="application/json" id="urlsJson">
+        {
+            "add_quest": "{{ url_for('admin.add_quest') }}"
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load data
+            const questData = JSON.parse(document.getElementById('questDataJson').textContent);
+            const urls = JSON.parse(document.getElementById('urlsJson').textContent);
+
+            // Elements
+            const modal = document.getElementById('questModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const questForm = document.getElementById('questForm');
+            const questIdInput = document.getElementById('questId');
+
+            // Functions
+            function openModal() {
+                modal.classList.add('active');
+            }
+
+            function closeModal() {
+                modal.classList.remove('active');
+            }
+
+            function openAddModal() {
+                modalTitle.textContent = 'Add New Quest';
+                questForm.action = urls.add_quest;
+                questIdInput.value = '';
+                questForm.reset();
+                openModal();
+            }
+
+            function openEditModal(questId) {
+                const quest = questData.find(q => q.id === questId);
+                if (!quest) return;
+
+                modalTitle.textContent = 'Edit Quest';
+                questForm.action = `/admin/quest/edit/${questId}`;
+                questIdInput.value = questId;
+
+                document.getElementById('questTitle').value = quest.title;
+                document.getElementById('questDescription').value = quest.description || '';
+                document.getElementById('questPlatform').value = quest.quest_type;
+                document.getElementById('questCategory').value = quest.category || '';
+                document.getElementById('questPoints').value = quest.points;
+                document.getElementById('questUrl').value = quest.action_url || '';
+                document.getElementById('questVerification').value = quest.verification_data || '';
+
+                if (quest.expires_at) {
+                    const date = new Date(quest.expires_at);
+                    // Format for datetime-local: YYYY-MM-DDThh:mm
+                    const dateString = new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+                        .toISOString()
+                        .slice(0, 16);
+                    document.getElementById('questExpires').value = dateString;
+                } else {
+                    document.getElementById('questExpires').value = '';
+                }
+
+                openModal();
+            }
+
+            function toggleQuest(questId, isActive) {
+                const action = isActive ? 'disable' : 'enable';
+                if (confirm(`Are you sure you want to ${action} this quest?`)) {
+                    fetch(`/admin/quest/toggle/${questId}`, { method: 'POST' })
+                        .then(response => {
+                            if (response.ok) location.reload();
+                            else alert('Error toggling quest');
+                        })
+                        .catch(err => alert('Error: ' + err));
+                }
+            }
+
+            function deleteQuest(questId) {
+                if (confirm('Are you sure you want to delete this quest? This cannot be undone.')) {
+                    fetch(`/admin/quest/delete/${questId}`, { method: 'POST' })
+                        .then(response => {
+                            if (response.ok) location.reload();
+                            else alert('Error deleting quest');
+                        })
+                        .catch(err => alert('Error: ' + err));
+                }
+            }
+
+            // Event Listeners
+            document.getElementById('addQuestBtn').addEventListener('click', openAddModal);
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+
+            // Close on escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
+
+            // Delegate events for dynamically generated buttons
+            document.addEventListener('click', function (e) {
+                // Edit button
+                const editBtn = e.target.closest('.edit-quest-btn');
+                if (editBtn) {
+                    const id = parseInt(editBtn.dataset.questId);
+                    openEditModal(id);
+                }
+
+                // Toggle button
+                const toggleBtn = e.target.closest('.toggle-quest-btn');
+                if (toggleBtn) {
+                    const id = parseInt(toggleBtn.dataset.questId);
+                    const isActive = toggleBtn.dataset.isActive === 'true';
+                    toggleQuest(id, isActive);
+                }
+
+                // Delete button
+                const deleteBtn = e.target.closest('.delete-quest-btn');
+                if (deleteBtn) {
+                    const id = parseInt(deleteBtn.dataset.questId);
+                    deleteQuest(id);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8 pt-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1
+                class="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 uppercase tracking-wider">
+                Reward Shop
+            </h1>
+            <p class="text-gray-400 text-lg">Spend your points on amazing rewards</p>
+        </div>
+        {% if user %}
+        <div
+            class="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-xl px-6 py-3">
+            <div class="text-sm text-gray-400">Your Points</div>
+            <div class="text-3xl font-bold text-yellow-400" id="userPoints">{{ user.points }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for reward in rewards %}
+    <div
+        class="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:shadow-yellow-500/20 transition-all duration-300 hover:scale-[1.02]">
+        <!-- Reward Image -->
+        <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center overflow-hidden">
+            {% if reward.image_url %}
+            <img src="{{ reward.image_url }}" alt="{{ reward.title }}" class="w-full h-full object-cover">
+            {% else %}
+            <span class="text-6xl">🎁</span>
+            {% endif %}
+        </div>
+
+        <!-- Reward Info -->
+        <div class="p-5 space-y-3">
+            <div class="flex items-start justify-between">
+                <h3 class="font-bold text-xl text-white group-hover:text-yellow-300 transition-colors">
+                    {{ reward.title }}
+                </h3>
+                {% if reward.category %}
+                <span class="px-2 py-1 rounded-full text-xs font-bold bg-purple-500/30 text-purple-200">
+                    {{ reward.category }}
+                </span>
+                {% endif %}
+            </div>
+
+            <p class="text-sm text-gray-300">{{ reward.description or 'No description available' }}</p>
+
+            <!-- Stock Info -->
+            {% if reward.stock is not none %}
+            <div class="text-xs text-gray-400">
+                {% if reward.stock > 0 %}
+                📦 {{ reward.stock }} remaining
+                {% else %}
+                ❌ Out of stock
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Cost and Claim Button -->
+            <div class="pt-3 border-t border-white/10">
+                <div class="flex items-center justify-between">
+                    <div class="text-yellow-400 font-bold text-2xl">
+                        💰 {{ reward.cost }}
+                    </div>
+                    {% if reward.stock is none or reward.stock > 0 %}
+                    <button onclick="claimReward({{ reward.id }}, '{{ reward.title }}', {{ reward.cost }})"
+                        class="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all transform hover:-translate-y-0.5 shadow-lg shadow-yellow-900/50"
+                        {% if user and user.points < reward.cost %}disabled class="opacity-50 cursor-not-allowed" {%
+                        endif %}>
+                        Claim
+                    </button>
+                    {% else %}
+                    <div class="bg-gray-600/50 text-gray-400 px-6 py-2.5 rounded-lg font-bold text-sm">
+                        Sold Out
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Decorative corner accents -->
+        <div
+            class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-tr-2xl pointer-events-none">
+        </div>
+        <div
+            class="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-yellow-500/10 to-transparent rounded-bl-2xl pointer-events-none">
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not rewards %}
+    <div class="col-span-full text-center py-16">
+        <p class="text-gray-400 text-xl mb-4">No rewards available yet</p>
+        <p class="text-gray-500">Check back later for amazing rewards!</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Claim Confirmation Modal -->
+<div id="claimModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div
+        class="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-2xl p-6 max-w-md w-full mx-4">
+        <h2 class="text-2xl font-bold text-white mb-4">Confirm Claim</h2>
+        <p class="text-gray-300 mb-6" id="claimMessage"></p>
+        <div class="flex gap-3">
+            <button onclick="confirmClaim()"
+                class="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white px-6 py-3 rounded-lg font-bold transition-all">
+                Confirm
+            </button>
+            <button onclick="closeClaimModal()"
+                class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedRewardId = null;
+
+    function claimReward(rewardId, title, cost) {
+        selectedRewardId = rewardId;
+        const userPoints = parseInt(document.getElementById('userPoints').textContent);
+
+        if (userPoints < cost) {
+            alert(`Insufficient points! You need ${cost} points but only have ${userPoints}.`);
+            return;
+        }
+
+        document.getElementById('claimMessage').textContent =
+            `Claim "${title}" for ${cost} points?`;
+        document.getElementById('claimModal').classList.remove('hidden');
+    }
+
+    function closeClaimModal() {
+        document.getElementById('claimModal').classList.add('hidden');
+        selectedRewardId = null;
+    }
+
+    function confirmClaim() {
+        if (!selectedRewardId) return;
+
+        const btn = event.currentTarget;
+        btn.disabled = true;
+        btn.textContent = 'Claiming...';
+
+        fetch(`/rewards/claim/${selectedRewardId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(`✅ Successfully claimed ${data.reward_title}!\\n💰 Points spent: ${data.points_spent}\\n💵 Remaining points: ${data.remaining_points}`);
+                    location.reload();
+                } else {
+                    alert(data.error || 'Failed to claim reward');
+                    btn.disabled = false;
+                    btn.textContent = 'Confirm';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+                btn.disabled = false;
+                btn.textContent = 'Confirm';
+            });
+    }
+</script>
+{% endblock %}
