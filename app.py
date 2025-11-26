@@ -7,6 +7,7 @@ from routes.quests import quests_bp
 from routes.admin import admin_bp
 from routes.rewards import rewards_bp
 from routes.onboarding import onboarding_bp
+from routes.profile import profile_bp
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -20,6 +21,7 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(rewards_bp, url_prefix='/rewards')
     app.register_blueprint(onboarding_bp, url_prefix='/onboarding')
+    app.register_blueprint(profile_bp, url_prefix='/profile')
 
     with app.app_context():
         # In production, use migrations. For dev/prototype, create all.

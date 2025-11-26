@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8 pt-4">
+    <h1 class="text-3xl font-bold mb-2 text-white uppercase tracking-widest glitch-text" data-text="Profile">
+        Profile
+    </h1>
+    <p class="text-cyber-gold text-sm tracking-wider uppercase">Your Account Information</p>
+</div>
+
+<div class="max-w-2xl mx-auto space-y-6">
+    <!-- Profile Card -->
+    <div
+        class="bg-cyber-dark/80 backdrop-blur-md rounded-2xl border border-cyber-gold/30 shadow-neon-gold p-8 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyber-gold to-cyber-red"></div>
+
+        <!-- Profile Header - Cyberpunk Style -->
+        <div class="flex flex-col items-center text-center mb-8">
+            <!-- Avatar with Level Badge -->
+            <div class="relative mb-4">
+                <div
+                    class="w-32 h-32 rounded-full bg-gradient-to-br from-cyber-gold via-cyber-orange to-cyber-red p-1 shadow-lg shadow-cyber-gold/30">
+                    <div
+                        class="w-full h-full rounded-full bg-cyber-dark flex items-center justify-center overflow-hidden">
+                        {% if user.profile_photo_url %}
+                        <img src="{{ user.profile_photo_url }}" alt="Profile" class="w-full h-full object-cover">
+                        {% else %}
+                        <i class="fas fa-user text-6xl text-gray-600"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Level Badge -->
+                <div
+                    class="absolute bottom-0 right-0 bg-cyber-red text-white px-3 py-1 rounded-full font-bold text-xs uppercase shadow-lg border-2 border-cyber-dark">
+                    LVL {{ user.level if user.level else 1 }}
+                </div>
+            </div>
+
+            <!-- Username -->
+            <h2 class="text-3xl font-bold text-white uppercase tracking-widest mb-1">
+                {{ user.first_name }} {{ user.last_name if user.last_name else '' }}
+            </h2>
+            <p class="text-cyber-gold text-sm uppercase tracking-wider mb-6">Cyber Runner</p>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 gap-4 w-full max-w-md">
+                <!-- Credits Card -->
+                <div
+                    class="bg-gradient-to-br from-cyber-dark to-cyber-black border border-cyber-gold/30 rounded-xl p-4 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-cyber-gold/10 rounded-full blur-xl"></div>
+                    <div class="relative z-10">
+                        <p class="text-gray-400 text-xs uppercase tracking-wider mb-1">Credits</p>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-coins text-cyber-gold text-2xl"></i>
+                            <span class="text-3xl font-bold text-white">{{ user.points }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Experience Card -->
+                <div
+                    class="bg-gradient-to-br from-cyber-dark to-cyber-black border border-cyber-red/30 rounded-xl p-4 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-cyber-red/10 rounded-full blur-xl"></div>
+                    <div class="relative z-10">
+                        <p class="text-gray-400 text-xs uppercase tracking-wider mb-1">Experience</p>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-bolt text-cyber-red text-2xl"></i>
+                            <span class="text-3xl font-bold text-white">{{ user.xp }}</span>
+                            <span class="text-cyber-red text-sm font-bold uppercase">XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Form -->
+        <form id="profileForm" class="space-y-6">
+            <!-- Email -->
+            <div>
+                <label class="block text-cyber-gold font-bold text-xs uppercase tracking-wider mb-2">
+                    <i class="fas fa-envelope mr-2"></i>
+                    Email Address
+                </label>
+                <input type="email" id="email" name="email" value="{{ user.email if user.email else '' }}" required
+                    class="w-full bg-cyber-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyber-gold focus:ring-1 focus:ring-cyber-gold transition-all">
+            </div>
+
+            <!-- First Name -->
+            <div>
+                <label class="block text-cyber-gold font-bold text-xs uppercase tracking-wider mb-2">
+                    <i class="fas fa-user mr-2"></i>
+                    First Name
+                </label>
+                <input type="text" id="firstName" name="firstName"
+                    value="{{ user.first_name if user.first_name else '' }}" readonly
+                    class="w-full bg-white/5 border border-white/5 rounded-lg px-4 py-3 text-gray-400 cursor-not-allowed">
+                <p class="text-gray-500 text-[10px] mt-1 uppercase tracking-wider">From Telegram</p>
+            </div>
+
+            <!-- Last Name -->
+            <div>
+                <label class="block text-cyber-gold font-bold text-xs uppercase tracking-wider mb-2">
+                    <i class="fas fa-user mr-2"></i>
+                    Last Name
+                </label>
+                <input type="text" id="lastName" name="lastName" value="{{ user.last_name if user.last_name else '' }}"
+                    class="w-full bg-cyber-black border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyber-gold focus:ring-1 focus:ring-cyber-gold transition-all"
+                    placeholder="Enter your last name (optional)">
+            </div>
+
+            <!-- Telegram Info (Read-only) -->
+            <div class="bg-cyber-black/50 border border-white/10 rounded-lg p-4">
+                <h3 class="text-white font-bold text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fab fa-telegram text-blue-400"></i>
+                    Telegram Information
+                </h3>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-500 text-[10px] uppercase tracking-wider mb-1">Telegram ID</label>
+                        <input type="text" value="{{ user.telegram_id }}" readonly
+                            class="w-full bg-white/5 border border-white/5 rounded-lg px-3 py-2 text-gray-400 text-sm font-mono cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-gray-500 text-[10px] uppercase tracking-wider mb-1">Username</label>
+                        <input type="text" value="@{{ user.username if user.username else 'Not set' }}" readonly
+                            class="w-full bg-white/5 border border-white/5 rounded-lg px-3 py-2 text-gray-400 text-sm font-mono cursor-not-allowed">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="flex gap-4">
+                <button type="submit"
+                    class="flex-1 bg-cyber-gold hover:bg-yellow-400 text-cyber-black font-bold py-4 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-neon-gold uppercase tracking-widest clip-path-polygon">
+                    <i class="fas fa-save mr-2"></i>
+                    Save Changes
+                </button>
+                <a href="{{ url_for('main.index') }}"
+                    class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-4 rounded-lg transition-all text-center uppercase tracking-widest border border-white/20">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .clip-path-polygon {
+        clip-path: polygon(5% 0, 100% 0, 100% 80%, 95% 100%, 0 100%, 0 20%);
+    }
+</style>
+
+<script>
+    document.getElementById('profileForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const lastName = document.getElementById('lastName').value;
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>SAVING...';
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch('/profile/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    last_name: lastName
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                showModal('Success', 'Profile updated successfully!', () => {
+                    location.reload();
+                });
+            } else {
+                showModal('Error', data.error || 'Failed to update profile');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        } catch (error) {
+            showModal('Error', 'Network Error');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+{% endblock %}
