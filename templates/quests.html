@@ -78,13 +78,13 @@
             </div>
             {% endif %}
             {% else %}
-            <button onclick="completeQuest('{{ quest.id }}')"
-                class="relative overflow-hidden bg-cyber-gold hover:bg-yellow-400 text-cyber-black px-6 py-2.5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all shadow-lg hover:shadow-neon-gold clip-path-polygon group-hover:scale-105">
+            <a href="{{ url_for('quests.verify_quest', quest_id=quest.id) }}"
+                class="relative overflow-hidden bg-cyber-gold hover:bg-yellow-400 text-cyber-black px-6 py-2.5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all shadow-lg hover:shadow-neon-gold clip-path-polygon group-hover:scale-105 inline-block">
                 <span class="relative z-10">Start</span>
                 <div
                     class="absolute inset-0 bg-white/30 transform -skew-x-12 -translate-x-full group-hover:animate-shine">
                 </div>
-            </button>
+            </a>
             {% endif %}
         </div>
     </div>
@@ -114,41 +114,6 @@
             el.style.animationDelay = el.dataset.delay + 'ms';
         });
     });
-
-    function completeQuest(questId) {
-        // Add loading state to button
-        const btn = event.currentTarget;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="relative z-10">...</span>';
-        btn.disabled = true;
-        btn.classList.add('opacity-75', 'cursor-not-allowed');
-
-        fetch(`/quests/complete/${questId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showModal('Mission Complete', 'Reward Acquired: ' + data.new_points + ' Credits', () => {
-                        location.reload();
-                    });
-                } else {
-                    showModal('Error', 'Error: ' + data.error);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                }
-            })
-            .catch(err => {
-                showModal('Error', 'Network Error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-            });
-    }
 
     function checkIn(questId) {
         const btn = event.currentTarget;
