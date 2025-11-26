@@ -19,7 +19,7 @@
                 <h1 class="text-3xl font-bold text-white uppercase tracking-widest glitch-text" data-text="Welcome">
                     Welcome
                 </h1>
-                <p class="text-cyber-gold text-sm tracking-widest uppercase mt-2">Initiate Cyber Protocol</p>
+                <p class="text-cyber-gold text-sm tracking-widest uppercase mt-2">Initiate Brgy Tamago Quest</p>
             </div>
 
             <!-- Onboarding Form -->
@@ -51,21 +51,11 @@
                     </div>
 
                     <!-- Username (Read-only) -->
-                    <div class="mb-3">
+                    <div>
                         <label class="block text-gray-500 text-[10px] uppercase tracking-wider mb-1">Username</label>
                         <input type="text" value="@{{ user.username if user and user.username else 'Not set' }}"
                             readonly
                             class="w-full bg-white/5 border border-white/5 rounded-lg px-3 py-2 text-gray-400 text-sm font-mono cursor-not-allowed">
-                    </div>
-
-                    <!-- Last Name (Editable) -->
-                    <div>
-                        <label class="block text-cyber-gold font-bold text-xs uppercase tracking-wider mb-1">
-                            Last Name <span class="text-gray-600 font-normal">(Optional)</span>
-                        </label>
-                        <input type="text" id="lastName" name="lastName" placeholder="Enter your last name"
-                            value="{{ user.last_name if user and user.last_name else '' }}"
-                            class="w-full bg-cyber-black border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-cyber-gold focus:ring-1 focus:ring-cyber-gold transition-all">
                     </div>
                 </div>
 
@@ -74,10 +64,10 @@
                     class="bg-cyber-black/50 rounded-lg p-4 border border-white/10 max-h-32 overflow-y-auto custom-scrollbar">
                     <h3 class="text-white font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
                         <i class="fas fa-file-contract text-cyber-gold"></i>
-                        Protocol Agreement
+                        Quest Agreement
                     </h3>
                     <div class="text-gray-400 text-xs space-y-2 font-mono">
-                        <p>1. ACCEPTANCE: By initializing, you agree to the Cyber Protocol.</p>
+                        <p>1. ACCEPTANCE: By initializing, you agree to the Brgy Tamago Quest terms.</p>
                         <p>2. INTEGRITY: Fraudulent activity results in immediate termination.</p>
                         <p>3. ASSETS: Credits have no real-world value outside this system.</p>
                         <p>4. DATA: Your identity is secured within our encrypted servers.</p>
@@ -89,7 +79,7 @@
                     <input type="checkbox" id="terms" name="terms" required
                         class="mt-1 w-4 h-4 rounded border-gray-600 bg-cyber-black text-cyber-gold focus:ring-cyber-gold focus:ring-offset-cyber-black">
                     <label for="terms" class="text-gray-400 text-xs">
-                        I accept the <span class="text-cyber-gold font-bold">Protocol Agreement</span>.
+                        I accept the <span class="text-cyber-gold font-bold">Quest Agreement</span>.
                     </label>
                 </div>
 
@@ -104,26 +94,175 @@
     </div>
 </div>
 
+<!-- Loading Animation Modal -->
+<div id="loadingModal" class="fixed inset-0 z-[100] hidden bg-cyber-black/95 backdrop-blur-md">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <!-- Circular Loading Animation -->
+            <div class="relative w-64 h-64 mx-auto mb-8">
+                <!-- Outer rotating ring -->
+                <div
+                    class="absolute inset-0 rounded-full border-4 border-transparent border-t-cyber-gold border-r-cyber-gold animate-spin-slow">
+                </div>
+
+                <!-- Middle rotating ring -->
+                <div
+                    class="absolute inset-4 rounded-full border-4 border-transparent border-b-cyber-red border-l-cyber-red animate-spin-reverse">
+                </div>
+
+                <!-- Inner pulsing circle -->
+                <div
+                    class="absolute inset-8 rounded-full bg-gradient-to-br from-cyber-gold/20 to-cyber-red/20 animate-pulse-slow">
+                </div>
+
+                <!-- Center icon -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-gamepad text-6xl text-cyber-gold animate-pulse"></i>
+                </div>
+
+                <!-- Orbiting dots -->
+                <div
+                    class="absolute top-0 left-1/2 w-4 h-4 -ml-2 -mt-2 bg-cyber-gold rounded-full shadow-neon-gold animate-orbit">
+                </div>
+                <div
+                    class="absolute bottom-0 left-1/2 w-4 h-4 -ml-2 -mb-2 bg-cyber-red rounded-full shadow-neon-red animate-orbit-reverse">
+                </div>
+            </div>
+
+            <!-- Loading Text -->
+            <h2 class="text-3xl font-bold text-white uppercase tracking-widest mb-4 glitch-text"
+                data-text="Initializing">
+                Initializing
+            </h2>
+            <p class="text-cyber-gold text-sm uppercase tracking-wider animate-pulse">
+                <span id="loadingDots">Preparing your quest hub</span>
+            </p>
+        </div>
+    </div>
+</div>
+
 <style>
     .clip-path-polygon {
         clip-path: polygon(5% 0, 100% 0, 100% 80%, 95% 100%, 0 100%, 0 20%);
     }
+
+    @keyframes spin-slow {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes spin-reverse {
+        from {
+            transform: rotate(360deg);
+        }
+
+        to {
+            transform: rotate(0deg);
+        }
+    }
+
+    @keyframes pulse-slow {
+
+        0%,
+        100% {
+            opacity: 0.3;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.6;
+            transform: scale(1.05);
+        }
+    }
+
+    @keyframes orbit {
+        from {
+            transform: rotate(0deg) translateX(128px) rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg) translateX(128px) rotate(-360deg);
+        }
+    }
+
+    @keyframes orbit-reverse {
+        from {
+            transform: rotate(360deg) translateX(128px) rotate(-360deg);
+        }
+
+        to {
+            transform: rotate(0deg) translateX(128px) rotate(0deg);
+        }
+    }
+
+    .animate-spin-slow {
+        animation: spin-slow 3s linear infinite;
+    }
+
+    .animate-spin-reverse {
+        animation: spin-reverse 2s linear infinite;
+    }
+
+    .animate-pulse-slow {
+        animation: pulse-slow 2s ease-in-out infinite;
+    }
+
+    .animate-orbit {
+        animation: orbit 4s linear infinite;
+    }
+
+    .animate-orbit-reverse {
+        animation: orbit-reverse 3s linear infinite;
+    }
 </style>
 
 <script>
+    // Animated loading dots
+    let dotCount = 0;
+    const loadingTexts = [
+        'Preparing your quest hub',
+        'Syncing with the network',
+        'Loading missions',
+        'Almost ready'
+    ];
+    let textIndex = 0;
+
+    function animateLoadingText() {
+        const dotsElement = document.getElementById('loadingDots');
+        if (dotsElement) {
+            dotCount = (dotCount + 1) % 4;
+            const dots = '.'.repeat(dotCount);
+            dotsElement.textContent = loadingTexts[textIndex] + dots;
+        }
+    }
+
     document.getElementById('onboardingForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const email = document.getElementById('email').value;
-        const lastName = document.getElementById('lastName').value;
         const terms = document.getElementById('terms').checked;
 
         if (!terms) {
-            showModal('Error', 'Protocol Agreement must be accepted.');
+            showModal('Error', 'Quest Agreement must be accepted.');
             return;
         }
 
-        // Show loading state
+        // Show epic loading animation
+        const loadingModal = document.getElementById('loadingModal');
+        loadingModal.classList.remove('hidden');
+
+        // Start loading text animation
+        const textInterval = setInterval(animateLoadingText, 300);
+        const textChangeInterval = setInterval(() => {
+            textIndex = (textIndex + 1) % loadingTexts.length;
+        }, 2000);
+
+        // Show loading state on button
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>INITIALIZING...';
@@ -137,7 +276,6 @@
                 },
                 body: JSON.stringify({
                     email,
-                    last_name: lastName,
                     terms_accepted: true
                 })
             });
@@ -145,13 +283,24 @@
             const data = await response.json();
 
             if (data.status === 'success') {
-                window.location.href = '/quests/';
+                // Wait 5 seconds to show the animation
+                setTimeout(() => {
+                    clearInterval(textInterval);
+                    clearInterval(textChangeInterval);
+                    window.location.href = '/quests/';
+                }, 5000);
             } else {
+                clearInterval(textInterval);
+                clearInterval(textChangeInterval);
+                loadingModal.classList.add('hidden');
                 showModal('Error', data.error || 'Initialization Failed');
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             }
         } catch (error) {
+            clearInterval(textInterval);
+            clearInterval(textChangeInterval);
+            loadingModal.classList.add('hidden');
             showModal('Error', 'Network Error');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
