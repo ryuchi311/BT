@@ -1,171 +1,242 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quest Hub</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            black: '#1f1f20',
+                            dark: '#202020',
+                            gold: '#FEBD11',
+                            yellow: '#fdbd16',
+                            red: '#f31e21',
+                            gray: '#585858',
+                            light: '#e3c293',
+                            orange: '#ef6d1f'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'neon-gold': '0 0 10px rgba(254, 189, 17, 0.5), 0 0 20px rgba(254, 189, 17, 0.3)',
+                        'neon-red': '0 0 10px rgba(243, 30, 33, 0.5), 0 0 20px rgba(243, 30, 33, 0.3)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background-color: #1f1f20;
+            background-image:
+                radial-gradient(circle at 50% 0%, rgba(254, 189, 17, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(243, 30, 33, 0.05) 0%, transparent 50%);
             color: #ffffff;
             font-family: 'Rajdhani', sans-serif;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: rgba(20, 20, 30, 0.9);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 50;
-        }
-
-        /* Custom Scrollbar */
+        /* Cyberpunk Scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #1a1a1a;
+            background: #1f1f20;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #4a4a4a;
-            border-radius: 4px;
+            background: #585858;
+            border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #6a6a6a;
+            background: #FEBD11;
+        }
+
+        .glass-panel {
+            background: rgba(31, 31, 32, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .bottom-nav {
+            background: rgba(31, 31, 32, 0.95);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(254, 189, 17, 0.2);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-item.active {
+            color: #FEBD11;
+            text-shadow: 0 0 10px rgba(254, 189, 17, 0.6);
+        }
+
+        .nav-item.active i {
+            transform: translateY(-2px);
+        }
+
+        /* Safe area for iPhone home indicator */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
         }
     </style>
 </head>
 
-<body class="pb-20 pt-20">
+<body class="pb-24 pt-20 antialiased selection:bg-cyber-gold selection:text-cyber-black">
     <!-- Fixed Header -->
     <header
-        class="fixed top-0 left-0 right-0 z-40 bg-[#0f0c29]/80 backdrop-blur-md border-b border-white/10 h-16 flex items-center justify-center shadow-lg">
-        <div class="container mx-auto px-4 flex items-center justify-center">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BRGY Logo"
-                class="h-10 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+        class="fixed top-0 left-0 right-0 z-40 glass-panel h-16 flex items-center justify-center border-b border-white/5 shadow-lg">
+        <div class="container mx-auto px-4 flex items-center justify-start">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BRGY TAMAGO"
+                class="h-12 w-auto object-contain filter drop-shadow-[0_0_5px_rgba(254,189,17,0.5)]">
         </div>
     </header>
 
-    <div class="container mx-auto px-4 py-6">
+    <div class="container mx-auto px-4 py-6 animate-fade-in">
         {% block content %}{% endblock %}
     </div>
 
-    <nav class="bottom-nav flex justify-around py-3">
-        <a href="{{ url_for('main.index') }}" class="flex flex-col items-center text-gray-400 hover:text-white">
-            <span class="text-xl">🏠</span>
-            <span class="text-xs">Home</span>
-        </a>
-        <a href="{{ url_for('quests.list_quests') }}" class="flex flex-col items-center text-gray-400 hover:text-white">
-            <span class="text-xl">📜</span>
-            <span class="text-xs">Quests</span>
-        </a>
-        <a href="{{ url_for('rewards.list_rewards') }}" class="flex flex-col items-center text-gray-400 hover:text-white">
-            <span class="text-xl">🎁</span>
-            <span class="text-xs">Rewards</span>
-        </a>
-        <a href="{{ url_for('main.leaderboard') }}" class="flex flex-col items-center text-gray-400 hover:text-white">
-            <span class="text-xl">🏆</span>
-            <span class="text-xs">Rank</span>
-        </a>
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav fixed bottom-0 w-full z-50 pb-safe">
+        <div class="flex justify-around items-center h-16 px-2">
+            <a href="{{ url_for('main.index') }}"
+                class="nav-item flex flex-col items-center justify-center w-full h-full space-y-1 text-gray-400 hover:text-cyber-gold transition-all duration-300 group {{ 'active' if request.endpoint == 'main.index' }}">
+                <i class="fas fa-home text-xl group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] font-bold tracking-wider uppercase">Home</span>
+            </a>
+
+            <a href="{{ url_for('quests.list_quests') }}"
+                class="nav-item flex flex-col items-center justify-center w-full h-full space-y-1 text-gray-400 hover:text-cyber-gold transition-all duration-300 group {{ 'active' if request.endpoint == 'quests.list_quests' }}">
+                <i class="fas fa-scroll text-xl group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] font-bold tracking-wider uppercase">Quests</span>
+            </a>
+
+            <!-- Center Action Button -->
+            <div class="relative -top-6">
+                <a href="{{ url_for('rewards.list_rewards') }}"
+                    class="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-cyber-red to-red-600 shadow-neon-red border-4 border-cyber-black transform hover:scale-105 transition-all duration-300">
+                    <i class="fas fa-gift text-white text-xl"></i>
+                </a>
+            </div>
+
+            <a href="{{ url_for('rewards.list_rewards') }}"
+                class="nav-item flex flex-col items-center justify-center w-full h-full space-y-1 text-gray-400 hover:text-cyber-gold transition-all duration-300 group {{ 'active' if request.endpoint == 'rewards.list_rewards' }}">
+                <i class="fas fa-trophy text-xl group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] font-bold tracking-wider uppercase">Rewards</span>
+            </a>
+
+            <a href="{{ url_for('main.leaderboard') }}"
+                class="nav-item flex flex-col items-center justify-center w-full h-full space-y-1 text-gray-400 hover:text-cyber-gold transition-all duration-300 group {{ 'active' if request.endpoint == 'main.leaderboard' }}">
+                <i class="fas fa-chart-line text-xl group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] font-bold tracking-wider uppercase">Rank</span>
+            </a>
+        </div>
     </nav>
 
-    <!-- Global Modal -->
-    <div id="globalModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog"
-        aria-modal="true">
-        <!-- Background backdrop -->
-        <div class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
-        </div>
-
-        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <!-- Modal panel -->
-                <div class="relative transform overflow-hidden rounded-2xl bg-[#1a1a2e] border border-white/10 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    id="modalPanel">
-                    <div class="bg-[#1a1a2e] px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                        <div class="sm:flex sm:items-start">
-                            <div
-                                class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-900/30 sm:mx-0 sm:h-10 sm:w-10">
-                                <span class="text-2xl">✨</span>
-                            </div>
-                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                                <h3 class="text-xl font-semibold leading-6 text-white" id="modalTitle">
-                                    Notification
-                                </h3>
-                                <div class="mt-2">
-                                    <p class="text-sm text-gray-300" id="modalMessage">
-                                        Message goes here...
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-[#151525] px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                        <button type="button" id="modalOkBtn"
-                            class="inline-flex w-full justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto transition-colors">
-                            OK
-                        </button>
-                    </div>
+    <!-- Global Modal (Flowbite styled) -->
+    <div id="globalModal" tabindex="-1" aria-hidden="true"
+        class="fixed top-0 left-0 right-0 z-[60] hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full flex items-center justify-center backdrop-blur-sm bg-black/50">
+        <div class="relative w-full max-w-md max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-cyber-black rounded-xl border border-cyber-gold/30 shadow-2xl shadow-cyber-gold/10">
+                <!-- Modal header -->
+                <div class="flex items-center justify-between p-4 md:p-5 border-b border-white/10 rounded-t">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2" id="modalTitle">
+                        <i class="fas fa-info-circle text-cyber-gold"></i>
+                        Notification
+                    </h3>
+                    <button type="button" onclick="hideModal()"
+                        class="text-gray-400 bg-transparent hover:bg-gray-700 hover:text-white rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-4 md:p-5 space-y-4">
+                    <p class="text-base leading-relaxed text-gray-300" id="modalMessage">
+                        Message goes here...
+                    </p>
+                </div>
+                <!-- Modal footer -->
+                <div class="flex items-center p-4 md:p-5 border-t border-white/10 rounded-b">
+                    <button type="button" id="modalOkBtn" onclick="hideModal()"
+                        class="w-full text-cyber-black bg-cyber-gold hover:bg-cyber-yellow focus:ring-4 focus:outline-none focus:ring-cyber-gold/50 font-bold rounded-lg text-sm px-5 py-2.5 text-center uppercase tracking-wider transition-all">OK</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
     <script>
         // Initialize Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
+        // Theme Colors for JS usage
+        tg.setHeaderColor('#1f1f20');
+        tg.setBackgroundColor('#1f1f20');
+
         // Modal Logic
-        const modal = document.getElementById('globalModal');
-        const backdrop = document.getElementById('modalBackdrop');
-        const panel = document.getElementById('modalPanel');
+        const modalElement = document.getElementById('globalModal');
         const titleEl = document.getElementById('modalTitle');
         const messageEl = document.getElementById('modalMessage');
-        const okBtn = document.getElementById('modalOkBtn');
         let currentCallback = null;
 
         function showModal(title, message, callback) {
-            titleEl.textContent = title;
+            // Update title text but keep icon
+            const icon = titleEl.querySelector('i');
+            titleEl.innerHTML = '';
+            if (icon) titleEl.appendChild(icon);
+            titleEl.appendChild(document.createTextNode(' ' + title));
+
             messageEl.textContent = message;
             currentCallback = callback;
 
-            modal.classList.remove('hidden');
-            // Small delay to allow display:block to apply before opacity transition
-            setTimeout(() => {
-                backdrop.classList.remove('opacity-0');
-                panel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
-                panel.classList.add('opacity-100', 'translate-y-0', 'sm:scale-100');
-            }, 10);
+            modalElement.classList.remove('hidden');
+            modalElement.classList.add('flex');
         }
 
         function hideModal() {
-            backdrop.classList.add('opacity-0');
-            panel.classList.remove('opacity-100', 'translate-y-0', 'sm:scale-100');
-            panel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            modalElement.classList.add('hidden');
+            modalElement.classList.remove('flex');
 
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                if (currentCallback) {
-                    currentCallback();
-                    currentCallback = null;
-                }
-            }, 300); // Match transition duration
+            if (currentCallback) {
+                currentCallback();
+                currentCallback = null;
+            }
         }
-
-        okBtn.addEventListener('click', hideModal);
     </script>
 </body>
 

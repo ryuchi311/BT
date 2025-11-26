@@ -2,107 +2,98 @@
 
 {% block content %}
 <div class="mb-8 pt-4">
-    <h1
-        class="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 uppercase tracking-wider">
-        Quest Log
+    <h1 class="text-3xl font-bold mb-2 text-white uppercase tracking-widest glitch-text" data-text="Mission Log">
+        Mission Log
     </h1>
-    <p class="text-gray-400 text-lg">Complete missions to earn rewards</p>
+    <p class="text-cyber-gold text-sm tracking-wider uppercase">Available Contracts</p>
 </div>
 
 <div class="space-y-4">
     {% for quest in quests %}
-    <div class="group relative bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-5 transition-all duration-300 hover:bg-white/10 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] animate-fade-in"
+    <div class="group relative bg-cyber-dark/80 backdrop-blur-md border border-white/5 rounded-xl p-5 transition-all duration-300 hover:border-cyber-gold/50 hover:shadow-neon-gold animate-fade-in overflow-hidden"
         data-delay="{{ loop.index0 * 100 }}">
+
+        <!-- Decorative corner accents -->
+        <div
+            class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/10 rounded-tr-lg group-hover:border-cyber-gold transition-colors">
+        </div>
+        <div
+            class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/10 rounded-bl-lg group-hover:border-cyber-gold transition-colors">
+        </div>
+
         <div class="flex items-center justify-between relative z-10">
-            <div class="flex items-center space-x-5">
+            <div class="flex items-center space-x-4">
                 <div
-                    class="w-14 h-14 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center text-2xl border border-white/5 shadow-inner group-hover:shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-shadow">
+                    class="w-14 h-14 bg-cyber-black rounded-lg flex items-center justify-center text-2xl border border-white/10 shadow-inner group-hover:shadow-[0_0_15px_rgba(254,189,17,0.3)] transition-all">
                     {% if quest.quest_type == 'telegram' %}
-                    <i class="fab fa-telegram text-4xl text-blue-400 filter drop-shadow-[0_0_10px_rgba(56,189,248,0.8)]"></i>
+                    <i class="fab fa-telegram text-4xl text-blue-400"></i>
                     {% elif quest.quest_type == 'twitter' %}
-                    <i class="fab fa-twitter text-4xl text-sky-400 filter drop-shadow-[0_0_10px_rgba(56,189,248,0.8)]"></i>
+                    <i class="fab fa-twitter text-4xl text-sky-400"></i>
                     {% elif quest.quest_type == 'youtube' %}
-                    <i class="fab fa-youtube text-4xl text-red-500 filter drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]"></i>
+                    <i class="fab fa-youtube text-4xl text-red-500"></i>
                     {% elif quest.quest_type == 'daily_checkin' %}
-                    <i class="fas fa-calendar-check text-4xl text-orange-400 filter drop-shadow-[0_0_10px_rgba(251,146,60,0.8)]"></i>
+                    <i class="fas fa-calendar-check text-4xl text-cyber-orange"></i>
                     {% elif quest.quest_type == 'manual' %}
-                    <i class="fas fa-hand-paper text-4xl text-purple-400 filter drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]"></i>
+                    <i class="fas fa-hand-paper text-4xl text-purple-400"></i>
                     {% elif quest.quest_type == 'visit' %}
-                    <i class="fas fa-link text-4xl text-green-400 filter drop-shadow-[0_0_10px_rgba(34,197,94,0.8)]"></i>
+                    <i class="fas fa-link text-4xl text-green-400"></i>
                     {% endif %}
                 </div>
                 <div>
-                    <h3 class="font-bold text-xl tracking-wide text-white group-hover:text-blue-300 transition-colors">
+                    <h3
+                        class="font-bold text-lg tracking-wide text-white group-hover:text-cyber-gold transition-colors uppercase">
                         {{ quest.title }}</h3>
-                    <div class="flex items-center mt-1">
-                        <span class="text-yellow-400 font-bold text-lg mr-2">+{{ quest.points }}</span>
+                    <div class="flex items-center mt-1 space-x-2">
+                        <span class="text-cyber-gold font-bold text-lg">+{{ quest.points }}</span>
                         <span
-                            class="text-xs text-gray-500 uppercase tracking-widest border border-gray-700 px-2 py-0.5 rounded">XP</span>
+                            class="text-[10px] text-cyber-black bg-cyber-gold px-1.5 py-0.5 rounded font-bold uppercase">XP</span>
                     </div>
                 </div>
             </div>
+
+            <!-- Actions -->
             {% if quest.quest_type == 'daily_checkin' %}
             {% set status = checkin_status.get(quest.id, {'checked_in': False, 'streak': 0}) %}
             {% if status['checked_in'] %}
             <div class="text-center">
-                <div class="bg-green-600/20 border border-green-500/30 text-green-300 px-6 py-2.5 rounded-lg font-bold">
-                    ✓ Checked In
+                <div
+                    class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider">
+                    <i class="fas fa-check mr-1"></i> Done
                 </div>
-                <div class="text-orange-400 font-bold text-sm mt-1">
-                    🔥 {{ status['streak'] }} Day Streak
+                <div class="text-cyber-orange font-bold text-xs mt-1 uppercase tracking-wider">
+                    Streak: {{ status['streak'] }}
                 </div>
             </div>
             {% else %}
             <div class="text-center">
                 <button onclick="checkIn('{{ quest.id }}')"
-                    class="relative overflow-hidden bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 text-white px-6 py-2.5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all transform hover:-translate-y-0.5 shadow-lg shadow-orange-900/50">
+                    class="relative overflow-hidden bg-cyber-orange hover:bg-orange-600 text-white px-6 py-2.5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all shadow-lg hover:shadow-orange-500/30 clip-path-polygon">
                     <span class="relative z-10">Check In</span>
                 </button>
                 {% if status['streak'] > 0 %}
-                <div class="text-orange-400 font-bold text-sm mt-1">
-                    🔥 {{ status['streak'] }} Day Streak
+                <div class="text-cyber-orange font-bold text-xs mt-1 uppercase tracking-wider">
+                    Streak: {{ status['streak'] }}
                 </div>
                 {% endif %}
             </div>
             {% endif %}
             {% else %}
             <button onclick="completeQuest('{{ quest.id }}')"
-                class="relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-6 py-2.5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all transform hover:-translate-y-0.5 shadow-lg shadow-blue-900/50">
+                class="relative overflow-hidden bg-cyber-gold hover:bg-yellow-400 text-cyber-black px-6 py-2.5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all shadow-lg hover:shadow-neon-gold clip-path-polygon group-hover:scale-105">
                 <span class="relative z-10">Start</span>
                 <div
-                    class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:animate-shine">
+                    class="absolute inset-0 bg-white/30 transform -skew-x-12 -translate-x-full group-hover:animate-shine">
                 </div>
             </button>
             {% endif %}
-        </div>
-        <!-- Decorative corner accents -->
-        <div
-            class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/5 to-transparent rounded-tr-xl pointer-events-none">
-        </div>
-        <div
-            class="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-white/5 to-transparent rounded-bl-xl pointer-events-none">
         </div>
     </div>
     {% endfor %}
 </div>
 
 <style>
-    @keyframes fade-in {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate-fade-in {
-        animation: fade-in 0.5s ease-out forwards;
-        opacity: 0;
-        /* Start hidden */
+    .clip-path-polygon {
+        clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
     }
 
     @keyframes shine {
@@ -141,14 +132,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Success animation or toast could go here
-                    // For now, we'll stick to the reload but make it feel slightly better
-                    showModal('Quest Completed!', 'New Points: ' + data.new_points, () => {
+                    showModal('Mission Complete', 'Reward Acquired: ' + data.new_points + ' Credits', () => {
                         location.reload();
                     });
                 } else {
                     showModal('Error', 'Error: ' + data.error);
-                    // Reset button
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                     btn.classList.remove('opacity-75', 'cursor-not-allowed');
@@ -163,7 +151,6 @@
     }
 
     function checkIn(questId) {
-        // Add loading state to button
         const btn = event.currentTarget;
         const originalText = btn.innerHTML;
         btn.innerHTML = '<span class="relative z-10">...</span>';
@@ -179,11 +166,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Show success message with streak
-                    alert(`✅ Check-in successful!\n🔥 ${data.streak} day streak!\n💰 +${data.points_earned} points`);
-                    location.reload();
+                    showModal('Check-in Successful', `🔥 ${data.streak} day streak!\n💰 +${data.points_earned} Credits`, () => {
+                        location.reload();
+                    });
                 } else {
-                    alert(data.error || 'Check-in failed');
+                    showModal('Error', data.error || 'Check-in failed');
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                     btn.classList.remove('opacity-75', 'cursor-not-allowed');
@@ -191,7 +178,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred');
+                showModal('Error', 'An error occurred');
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');

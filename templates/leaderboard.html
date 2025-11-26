@@ -1,20 +1,66 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6 text-center">🏆 Leaderboard</h1>
+<div class="mb-8 pt-4 text-center">
+    <h1 class="text-3xl font-bold mb-2 text-white uppercase tracking-widest glitch-text" data-text="Leaderboard">
+        Leaderboard
+    </h1>
+    <p class="text-cyber-gold text-sm tracking-wider uppercase">Top Cyber Runners</p>
+</div>
 
-<div class="bg-gray-800 rounded-lg overflow-hidden">
-    {% for user in users %}
-    <div class="flex items-center justify-between p-4 border-b border-gray-700 last:border-0">
-        <div class="flex items-center space-x-4">
-            <span class="text-xl font-bold w-6 text-center">{{ loop.index }}</span>
-            <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                {{ user.username[0] if user.username else '?' }}
-            </div>
-            <span class="font-bold">{{ user.username or 'Unknown' }}</span>
-        </div>
-        <span class="text-yellow-400 font-bold">{{ user.points }} pts</span>
+<div class="bg-cyber-dark/80 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden shadow-2xl">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr
+                    class="bg-cyber-black/50 border-b border-cyber-gold/20 text-cyber-gold uppercase text-xs tracking-wider">
+                    <th class="p-4 font-bold">Rank</th>
+                    <th class="p-4 font-bold">Runner</th>
+                    <th class="p-4 font-bold text-right">Credits</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for user in users %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="p-4">
+                        {% if loop.index == 1 %}
+                        <div
+                            class="w-8 h-8 rounded-lg bg-cyber-gold text-cyber-black flex items-center justify-center font-bold shadow-neon-gold">
+                            1</div>
+                        {% elif loop.index == 2 %}
+                        <div
+                            class="w-8 h-8 rounded-lg bg-gray-300 text-gray-900 flex items-center justify-center font-bold">
+                            2</div>
+                        {% elif loop.index == 3 %}
+                        <div
+                            class="w-8 h-8 rounded-lg bg-orange-700 text-white flex items-center justify-center font-bold">
+                            3</div>
+                        {% else %}
+                        <span class="text-gray-500 font-bold ml-2">#{{ loop.index }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        <div class="flex items-center space-x-3">
+                            <div
+                                class="w-10 h-10 rounded-full bg-cyber-black border border-white/10 flex items-center justify-center overflow-hidden">
+                                {% if user.photo_url %}
+                                <img src="{{ user.photo_url }}" alt="" class="w-full h-full object-cover">
+                                {% else %}
+                                <span class="text-gray-500 font-bold">{{ user.username[0] if user.username else '?'
+                                    }}</span>
+                                {% endif %}
+                            </div>
+                            <span class="font-bold text-white group-hover:text-cyber-gold transition-colors">{{
+                                user.username or 'Unknown' }}</span>
+                        </div>
+                    </td>
+                    <td class="p-4 text-right">
+                        <span class="text-cyber-gold font-bold text-lg">{{ user.points }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    {% endfor %}
 </div>
 {% endblock %}
