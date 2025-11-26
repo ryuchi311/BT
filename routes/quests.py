@@ -16,6 +16,15 @@ def list_quests():
     
     quests = Quest.query.filter_by(is_active=True).order_by(Quest.id.desc()).all()
     
+    # Get completed quests for this user
+    completed_quest_ids = []
+    if user_id:
+        completed = UserQuest.query.filter_by(
+            user_id=user_id,
+            status='completed'
+        ).all()
+        completed_quest_ids = [uq.quest_id for uq in completed]
+    
     # Get check-in status for daily quests
     checkin_status = {}
     if user_id:
@@ -46,7 +55,78 @@ def list_quests():
                         'streak': last_checkin.streak_count if last_checkin else 0
                     }
     
-    return render_template('quests.html', quests=quests, checkin_status=checkin_status)
+    return render_template('quests.html', quests=quests, checkin_status=checkin_status, completed_quest_ids=completed_quest_ids)
+
+@quests_bp.route('/verify/<int:quest_id>')
+def verify_quest(quest_id):
+    """Show verification page for YouTube quests"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('main.index'))
+    
+    quest = Quest.query.get_or_404(quest_id)
+    user = User.query.get(user_id)
+    
+    # Check if already completed
+    existing = UserQuest.query.filter_by(
+        user_id=user_id,
+        quest_id=quest_id,
+        status='completed'
+    ).first()
+    
+    if existing:
+        return redirect(url_for('quests.list_quests'))
+    
+    return render_template('quest_verify.html', quest=quest, user=user)
+
+@quests_bp.route('/verify-code/<int:quest_id>', methods=['POST'])
+def verify_code(quest_id):
+    """Verify the code entered by user"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    code = data.get('code', '').strip()
+    
+    quest = Quest.query.get_or_404(quest_id)
+    user = User.query.get(user_id)
+    
+    # Check if already completed
+    existing = UserQuest.query.filter_by(
+        user_id=user_id,
+        quest_id=quest_id,
+        status='completed'
+    ).first()
+    
+    if existing:
+        return jsonify({'success': False, 'error': 'Quest already completed'}), 400
+    
+    # Verify code
+    if not quest.verification_code:
+        return jsonify({'success': False, 'error': 'No verification code set for this quest'}), 400
+    
+    if code.upper() == quest.verification_code.upper():
+        # Mark as completed and award points
+        if not existing:
+            uq = UserQuest(user_id=user_id, quest_id=quest_id, status='completed', completed_at=datetime.utcnow())
+            db.session.add(uq)
+        else:
+            existing.status = 'completed'
+            existing.completed_at = datetime.utcnow()
+        
+        user.points += quest.points
+        user.xp += quest.points
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'points': quest.points,
+            'new_total_points': user.points
+        })
+    else:
+        return jsonify({'success': False, 'error': 'Invalid code. Please try again.'}), 400
 
 @quests_bp.route('/complete/<int:quest_id>', methods=['POST'])
 def complete_quest(quest_id):

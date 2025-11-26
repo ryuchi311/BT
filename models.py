@@ -48,6 +48,7 @@ class Quest(db.Model):
     platform_config = db.Column(db.JSON) # Platform-specific settings (channel_id, account, etc.)
     verification_type = db.Column(db.String(50), default='auto') # 'auto', 'manual', 'proof_required'
     verification_instructions = db.Column(db.Text) # Instructions for users on how to complete/verify
+    verification_code = db.Column(db.String(32), nullable=True) # Code for YouTube quest verification
 
     def to_dict(self):
         return {
