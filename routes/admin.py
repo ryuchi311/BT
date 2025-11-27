@@ -37,6 +37,7 @@ def add_quest():
         category=category,
         action_url=action_url,
         verification_data=verification_data,
+        verification_code=request.form.get('verification_code') or None,
         expires_at=expires_at,
         is_active=True
     )
@@ -57,6 +58,8 @@ def edit_quest(quest_id):
     quest.category = request.form.get('category')
     quest.action_url = request.form.get('action_url')
     quest.verification_data = request.form.get('verification_data')
+    # Save verification_code (used for YouTube quests)
+    quest.verification_code = request.form.get('verification_code') or None
     
     expires_at_str = request.form.get('expires_at')
     if expires_at_str:

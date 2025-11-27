@@ -240,6 +240,14 @@
                             class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                             placeholder="Channel ID, Tweet ID, etc.">
                     </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Verification Code
+                            (YouTube only - optional)</label>
+                        <input type="text" name="verification_code" id="questVerificationCode"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="E.g. QUEST2024 - code users will enter to verify">
+                    </div>
                 </div>
 
                 <div class="flex gap-3 pt-4">
@@ -312,6 +320,9 @@
                 document.getElementById('questPoints').value = quest.points;
                 document.getElementById('questUrl').value = quest.action_url || '';
                 document.getElementById('questVerification').value = quest.verification_data || '';
+                // Populate verification_code if present
+                const codeEl = document.getElementById('questVerificationCode');
+                if (codeEl) codeEl.value = quest.verification_code || '';
 
                 if (quest.expires_at) {
                     const date = new Date(quest.expires_at);

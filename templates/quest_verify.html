@@ -2,11 +2,11 @@
 
 {% block content %}
 <div data-quest-id="{{ quest.id }}" data-video-url="{{ quest.action_url }}" id="questData" style="display: none;"></div>
-<div class="min-h-screen flex items-center justify-center px-4 py-12">
-    <div class="max-w-2xl w-full">
+<div class="w-full" style="min-height: calc(100vh - 6rem); padding-top: 1rem; padding-bottom: 1rem;">
+    <div class="max-w-2xl w-full mx-auto">
         <!-- Quest Header Card -->
         <div
-            class="bg-cyber-dark/80 backdrop-blur-md rounded-2xl border border-cyber-gold/30 shadow-neon-gold p-8 mb-6 relative overflow-hidden">
+            class="bg-cyber-dark/80 backdrop-blur-md rounded-2xl border border-cyber-gold/30 shadow-neon-gold p-6 mb-4 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyber-gold to-cyber-red"></div>
 
             <div class="text-center relative z-10">
@@ -28,7 +28,7 @@
         </div>
 
         <!-- Verification Steps Card -->
-        <div class="bg-cyber-dark/80 backdrop-blur-md rounded-2xl border border-white/5 shadow-2xl p-8 relative">
+        <div class="bg-cyber-dark/80 backdrop-blur-md rounded-2xl border border-white/5 shadow-2xl p-6 relative">
 
             <!-- Step 1: Start Watch Button -->
             <div id="startSection" class="text-center">
@@ -98,7 +98,7 @@
         </div>
 
         <!-- Back Button -->
-        <div class="text-center mt-6">
+        <div class="text-center mt-4">
             <a href="{{ url_for('quests.list_quests') }}"
                 class="text-gray-500 hover:text-cyber-gold transition-colors text-sm uppercase tracking-wider">
                 <i class="fas fa-arrow-left mr-2"></i>

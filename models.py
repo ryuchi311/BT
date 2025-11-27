@@ -65,6 +65,7 @@ class Quest(db.Model):
             'icon': self.icon,
             'action_url': self.action_url,
             'verification_data': self.verification_data,
+            'verification_code': self.verification_code,
             'category': self.category,
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
             'is_active': self.is_active
