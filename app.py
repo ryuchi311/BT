@@ -1,6 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask, g, session
 from config import Config
-from models import db
+from models import db, User
 from routes.main import main_bp
 from routes.auth import auth_bp
 from routes.quests import quests_bp
@@ -22,6 +22,16 @@ def create_app(config_class=Config):
     app.register_blueprint(rewards_bp, url_prefix='/rewards')
     app.register_blueprint(onboarding_bp, url_prefix='/onboarding')
     app.register_blueprint(profile_bp, url_prefix='/profile')
+
+    @app.before_request
+    def load_logged_in_user():
+        """Attach the logged-in user to flask.g for easy template access."""
+        user_id = session.get('user_id')
+        g.user = User.query.get(user_id) if user_id else None
+
+    @app.context_processor
+    def inject_current_user():
+        return {'current_user': getattr(g, 'user', None)}
 
     with app.app_context():
         # In production, use migrations. For dev/prototype, create all.

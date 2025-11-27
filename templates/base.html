@@ -109,13 +109,26 @@
     </style>
 </head>
 
-<body class="pb-24 pt-20 antialiased selection:bg-cyber-gold selection:text-cyber-black">
+<body class="pb-24 pt-20 antialiased selection:bg-cyber-gold selection:text-cyber-black"
+    data-authenticated="{{ 'true' if current_user else 'false' }}">
     <!-- Fixed Header -->
     <header
         class="fixed top-0 left-0 right-0 z-40 glass-panel h-16 flex items-center justify-center border-b border-white/5 shadow-lg">
-        <div class="container mx-auto px-4 flex items-center justify-start">
+        <div class="container mx-auto px-4 flex items-center justify-between gap-4">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="BRGY TAMAGO"
                 class="h-12 w-auto object-contain filter drop-shadow-[0_0_5px_rgba(254,189,17,0.5)]">
+
+            {% if current_user %}
+            <a href="{{ url_for('profile.view_profile') }}"
+                class="flex items-center gap-2 text-white/80 hover:text-cyber-gold transition-all text-sm font-semibold uppercase tracking-wider">
+                <span class="truncate max-w-[160px]">
+                    {{ current_user.first_name or current_user.username or 'Profile' }}
+                </span>
+                <i class="fas fa-user-circle text-lg"></i>
+            </a>
+            {% else %}
+            <span class="text-[10px] uppercase tracking-[0.4em] text-gray-500">Guest</span>
+            {% endif %}
         </div>
     </header>
 
@@ -199,14 +212,13 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
     <script>
-        // Initialize Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        // Theme Colors for JS usage
-        tg.setHeaderColor('#1f1f20');
-        tg.setBackgroundColor('#1f1f20');
+        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+        if (tg && typeof tg.ready === 'function') {
+            tg.ready();
+            tg.expand();
+            tg.setHeaderColor('#1f1f20');
+            tg.setBackgroundColor('#1f1f20');
+        }
 
         // Modal Logic
         const modalElement = document.getElementById('globalModal');
@@ -215,7 +227,6 @@
         let currentCallback = null;
 
         function showModal(title, message, callback) {
-            // Update title text but keep icon
             const icon = titleEl.querySelector('i');
             titleEl.innerHTML = '';
             if (icon) titleEl.appendChild(icon);
@@ -237,6 +248,72 @@
                 currentCallback = null;
             }
         }
+
+        // Telegram auto-auth
+        const AUTH_FLAG_KEY = 'bt-tg-authenticated';
+        const isServerAuthenticated = document.body.dataset.authenticated === 'true';
+        let authPromise = null;
+
+        async function bootstrapTelegramAuth() {
+            if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+                return;
+            }
+
+            const alreadyTagged = sessionStorage.getItem(AUTH_FLAG_KEY) === '1';
+            if (isServerAuthenticated && alreadyTagged) {
+                return;
+            }
+
+            if (authPromise) {
+                return authPromise;
+            }
+
+            authPromise = fetch('/auth/telegram', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(tg.initDataUnsafe.user)
+            })
+                .then(async (response) => {
+                    const payload = await response.json().catch(() => ({}));
+                    return { ok: response.ok, payload };
+                })
+                .then(({ ok, payload }) => {
+                    if (!ok || payload.status !== 'success') {
+                        sessionStorage.removeItem(AUTH_FLAG_KEY);
+                        throw new Error(payload.error || 'Telegram authentication failed');
+                    }
+
+                    sessionStorage.setItem(AUTH_FLAG_KEY, '1');
+
+                    const needsOnboarding = payload.next === 'onboarding';
+                    const onOnboardingRoute = window.location.pathname.startsWith('/onboarding');
+
+                    if (needsOnboarding && !onOnboardingRoute) {
+                        window.location.href = '/onboarding/';
+                    } else if (!needsOnboarding && onOnboardingRoute) {
+                        window.location.href = '/';
+                    } else if (!needsOnboarding && document.body.dataset.authenticated !== 'true') {
+                        window.location.reload();
+                    }
+
+                    return payload;
+                })
+                .catch((error) => {
+                    console.warn('Telegram auth error:', error);
+                    authPromise = null;
+                });
+
+            return authPromise;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!isServerAuthenticated) {
+                bootstrapTelegramAuth();
+            }
+        });
     </script>
 </body>
 

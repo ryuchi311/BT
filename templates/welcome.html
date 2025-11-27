@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-[70vh] flex flex-col items-center justify-center text-center space-y-6">
+    <div class="space-y-3">
+        <p class="text-cyber-gold uppercase tracking-[0.4em] text-xs">Quest Hub</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-white">Ready for Launch</h1>
+        <p class="text-gray-400 max-w-lg">
+            Open this experience through the official Telegram bot so we can securely read your Telegram ID and drop
+            you straight into the missions. Once connected, we will only ask for your email one time.
+        </p>
+    </div>
+    <div class="bg-cyber-dark/80 border border-white/10 rounded-2xl px-6 py-5 max-w-md">
+        <h2 class="text-white font-semibold uppercase tracking-widest mb-2 text-sm">How it works</h2>
+        <ul class="text-left text-gray-300 text-sm space-y-2 list-disc list-inside">
+            <li>Launch the Brgy Tamago Quest bot and tap <span class="text-cyber-gold">Open Web App</span>.</li>
+            <li>We automatically sync your Telegram profile to create an account.</li>
+            <li>On first launch you only need to drop your email to unlock the dashboard.</li>
+        </ul>
+    </div>
+    <p class="text-xs text-gray-500 uppercase tracking-widest">Need a test account? Use <a href="{{ url_for('auth.dev_login', user_id=1) }}" class="text-cyber-gold underline">dev login</a>.</p>
+</div>
+{% endblock %}

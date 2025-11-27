@@ -21,12 +21,17 @@ class User(db.Model):
     quests = db.relationship('UserQuest', foreign_keys='UserQuest.user_id', backref='user', lazy='dynamic')
 
     def to_dict(self):
+        """Serialize commonly needed user attributes for JSON responses."""
         return {
             'id': self.id,
             'telegram_id': self.telegram_id,
             'username': self.username,
             'first_name': self.first_name,
             'last_name': self.last_name,
+            'photo_url': self.photo_url,
+            'email': self.email,
+            'is_onboarded': self.is_onboarded,
+            'terms_accepted': self.terms_accepted,
             'xp': self.xp,
             'points': self.points
         }

@@ -9,10 +9,11 @@ def index():
     # Mock user for dev if not authenticated
     user = getattr(g, 'user', None)
     if not user:
-        # For prototype, just show a demo user or redirect to auth
-        # We'll pass a dummy user object for the template to render
-        user = {'username': 'Traveler', 'points': 0, 'xp': 0}
-    
+        return render_template('welcome.html')
+
+    if not user.is_onboarded:
+        return redirect(url_for('onboarding.show_onboarding'))
+
     return render_template('index.html', user=user)
 
 @main_bp.route('/leaderboard')
