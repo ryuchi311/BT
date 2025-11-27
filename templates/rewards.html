@@ -24,7 +24,15 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for reward in rewards %}
     <div
-        class="group relative bg-cyber-dark/80 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden shadow-lg hover:shadow-neon-red transition-all duration-300 hover:-translate-y-1">
+        class="group relative bg-cyber-dark/80 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden shadow-lg hover:shadow-neon-red transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+        data-reward-id="{{ reward.id }}"
+        data-reward-title="{{ reward.title|e }}"
+        data-reward-cost="{{ reward.cost }}"
+        data-reward-desc="{{ (reward.description or '')|e }}"
+        data-reward-image="{{ reward.image_url or '' }}"
+        data-reward-stock="{{ reward.stock if reward.stock is not none else '' }}"
+        data-reward-category="{{ reward.category or '' }}"
+        onclick="openRewardDetails(this)">
         <!-- Reward Image -->
         <div class="h-48 bg-cyber-black relative overflow-hidden group-hover:opacity-90 transition-opacity">
             <div class="absolute inset-0 bg-gradient-to-t from-cyber-dark to-transparent z-10"></div>
@@ -84,6 +92,39 @@
     {% endif %}
 </div>
 
+<!-- Reward Details Modal -->
+<div id="rewardDetailsModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="bg-cyber-black border border-white/10 rounded-xl p-6 max-w-3xl w-full mx-4 shadow-2xl relative overflow-hidden">
+        <button onclick="closeRewardDetails()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <i class="fas fa-times fa-lg"></i>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="col-span-1 bg-gray-900 rounded overflow-hidden h-56 md:h-full">
+                <img id="detailImage" src="" alt="" class="w-full h-full object-cover">
+            </div>
+            <div class="col-span-2">
+                <h2 id="detailTitle" class="text-2xl font-bold text-white mb-2"></h2>
+                <p id="detailCategory" class="text-sm text-purple-300 mb-3"></p>
+                <p id="detailDescription" class="text-gray-300 mb-4"></p>
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="text-cyber-gold font-bold text-xl" id="detailCost"></div>
+                    <div class="text-sm text-gray-400" id="detailStock"></div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="detailClaimBtn" onclick="claimFromDetails()"
+                        class="bg-cyber-red hover:bg-red-600 text-white px-6 py-3 rounded-lg font-bold uppercase tracking-wider">
+                        Claim
+                    </button>
+                    <button onclick="closeRewardDetails()" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-bold">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Claim Confirmation Modal -->
 <div id="claimModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm">
     <div
@@ -110,6 +151,55 @@
 
 <script>
     let selectedRewardId = null;
+    let detailRewardId = null;
+
+    function openRewardDetails(el) {
+        const id = el.dataset.rewardId;
+        const title = el.dataset.rewardTitle || '';
+        const cost = el.dataset.rewardCost || 0;
+        const desc = el.dataset.rewardDesc || '';
+        const img = el.dataset.rewardImage || '';
+        const stock = el.dataset.rewardStock || '';
+        const category = el.dataset.rewardCategory || '';
+
+        detailRewardId = id;
+
+        const imgEl = document.getElementById('detailImage');
+        if (img) {
+            imgEl.src = img;
+            imgEl.alt = title;
+            imgEl.parentElement.style.display = '';
+        } else {
+            imgEl.src = '';
+            imgEl.alt = '';
+            imgEl.parentElement.style.display = 'none';
+        }
+
+        document.getElementById('detailTitle').textContent = title;
+        document.getElementById('detailDescription').textContent = desc || 'No description provided.';
+        document.getElementById('detailCategory').textContent = category ? `Category: ${category}` : '';
+        document.getElementById('detailCost').textContent = `${cost} CR`;
+        document.getElementById('detailStock').textContent = stock ? (stock > 0 ? `${stock} in stock` : 'Sold out') : 'Unlimited';
+
+        document.getElementById('rewardDetailsModal').classList.remove('hidden');
+    }
+
+    function closeRewardDetails() {
+        document.getElementById('rewardDetailsModal').classList.add('hidden');
+        detailRewardId = null;
+    }
+
+    function claimFromDetails() {
+        if (!detailRewardId) return;
+        // read title and cost from modal
+        const title = document.getElementById('detailTitle').textContent || '';
+        const costText = document.getElementById('detailCost').textContent || '0';
+        const cost = parseInt(costText, 10) || 0;
+
+        // close details and open claim modal
+        closeRewardDetails();
+        claimReward(detailRewardId, title, cost);
+    }
 
     function claimReward(rewardId, title, cost) {
         selectedRewardId = rewardId;

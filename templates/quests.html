@@ -10,6 +10,7 @@
 
 <div class="space-y-4">
     {% for quest in quests %}
+    {% set submission = user_quests.get(quest.id) if user_quests else None %}
     <div class="group relative bg-cyber-dark/80 backdrop-blur-md border border-white/5 rounded-xl p-5 transition-all duration-300 hover:border-cyber-gold/50 hover:shadow-neon-gold animate-fade-in overflow-hidden"
         data-delay="{{ loop.index0 * 100 }}">
 
@@ -78,6 +79,36 @@
             </div>
             {% endif %}
             {% else %}
+            {% set manual_status = submission.status if submission else None %}
+            {% set manual_verification = submission.verification_status if submission else None %}
+            {% if quest.id in completed_quest_ids or manual_status in ['approved', 'completed'] or manual_verification in ['verified'] %}
+            <div class="text-center">
+                <div
+                    class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider">
+                    <i class="fas fa-check mr-1"></i> Done
+                </div>
+            </div>
+            {% elif quest.quest_type == 'manual' and submission and (manual_status == 'rejected' or manual_verification == 'rejected') %}
+            <div class="text-left max-w-xs">
+                <div
+                    class="bg-red-500/10 border border-red-500/40 text-red-300 px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider text-center">
+                    <i class="fas fa-exclamation-triangle mr-1"></i> Needs Fix
+                </div>
+                <p class="text-xs text-red-200 mt-2">Reason: {{ submission.admin_notes or 'Please review the quest instructions and resubmit.' }}</p>
+                <button type="button" class="mt-3 w-full bg-cyber-gold hover:bg-yellow-400 text-cyber-black px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-neon-gold transition"
+                    onclick="acknowledgeManual('{{ quest.id }}', this)">
+                    <i class="fas fa-check mr-1"></i>Acknowledge
+                </button>
+            </div>
+            {% elif quest.quest_type == 'manual' and submission and manual_status == 'submitted' %}
+            <div class="text-center">
+                <div
+                    class="bg-blue-500/10 border border-blue-500/30 text-blue-300 px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider">
+                    <i class="fas fa-sync-alt mr-1"></i> In Review
+                </div>
+                <p class="text-xs text-gray-400 mt-2 max-w-xs">Our team is still reviewing your proof. Sit tight!</p>
+            </div>
+            {% else %}
             <a href="{{ url_for('quests.verify_quest', quest_id=quest.id) }}"
                 class="relative overflow-hidden bg-cyber-gold hover:bg-yellow-400 text-cyber-black px-6 py-2.5 rounded-lg font-bold tracking-wider uppercase text-sm transition-all shadow-lg hover:shadow-neon-gold clip-path-polygon group-hover:scale-105 inline-block">
                 <span class="relative z-10">Start</span>
@@ -85,6 +116,7 @@
                     class="absolute inset-0 bg-white/30 transform -skew-x-12 -translate-x-full group-hover:animate-shine">
                 </div>
             </a>
+            {% endif %}
             {% endif %}
         </div>
     </div>
@@ -148,6 +180,38 @@
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
             });
+    }
+
+    function acknowledgeManual(questId, buttonRef) {
+        const btn = buttonRef || event.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="relative z-10"><i class="fas fa-spinner fa-spin"></i></span>';
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+        fetch(`/quests/manual-ack/${questId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json())
+          .then(data => {
+              if (data.status === 'success') {
+                  showModal('Acknowledged', data.message || 'You can now resubmit your proof.', () => {
+                      location.reload();
+                  });
+              } else {
+                  showModal('Error', data.error || 'Unable to acknowledge.');
+                  btn.innerHTML = originalText;
+                  btn.disabled = false;
+                  btn.classList.remove('opacity-75', 'cursor-not-allowed');
+              }
+          }).catch(() => {
+              showModal('Error', 'Network error. Please try again.');
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+              btn.classList.remove('opacity-75', 'cursor-not-allowed');
+          });
     }
 </script>
 {% endblock %}

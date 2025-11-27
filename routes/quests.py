@@ -18,12 +18,19 @@ def list_quests():
     
     # Get completed quests for this user
     completed_quest_ids = []
+    user_quests = {}
     if user_id:
-        completed = UserQuest.query.filter_by(
-            user_id=user_id,
-            status='completed'
+        completed = UserQuest.query.filter(
+            UserQuest.user_id == user_id,
+            UserQuest.status.in_(['completed', 'approved'])
         ).all()
         completed_quest_ids = [uq.quest_id for uq in completed]
+
+        # Map latest submission per quest for quick lookups
+        submissions = UserQuest.query.filter_by(user_id=user_id).order_by(UserQuest.id.desc()).all()
+        for submission in submissions:
+            if submission.quest_id not in user_quests:
+                user_quests[submission.quest_id] = submission
     
     # Get check-in status for daily quests
     checkin_status = {}
@@ -55,7 +62,13 @@ def list_quests():
                         'streak': last_checkin.streak_count if last_checkin else 0
                     }
     
-    return render_template('quests.html', quests=quests, checkin_status=checkin_status, completed_quest_ids=completed_quest_ids)
+    return render_template(
+        'quests.html',
+        quests=quests,
+        checkin_status=checkin_status,
+        completed_quest_ids=completed_quest_ids,
+        user_quests=user_quests
+    )
 
 @quests_bp.route('/verify/<int:quest_id>')
 def verify_quest(quest_id):
@@ -76,8 +89,16 @@ def verify_quest(quest_id):
     
     if existing:
         return redirect(url_for('quests.list_quests'))
+
+    existing_submission = UserQuest.query.filter_by(
+        user_id=user_id,
+        quest_id=quest_id
+    ).order_by(UserQuest.id.desc()).first()
+
+    if existing_submission and existing_submission.status == 'completed':
+        existing_submission = None
     
-    return render_template('quest_verify.html', quest=quest, user=user)
+    return render_template('quest_verify.html', quest=quest, user=user, existing_submission=existing_submission)
 
 @quests_bp.route('/verify-code/<int:quest_id>', methods=['POST'])
 def verify_code(quest_id):
@@ -135,21 +156,24 @@ def complete_quest(quest_id):
         return jsonify({'error': 'Unauthorized'}), 401
         
     # Check if already completed
-    existing = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id).first()
+    existing = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id).order_by(UserQuest.id.desc()).first()
     if existing and existing.status == 'completed':
         return jsonify({'error': 'Already completed'}), 400
         
     quest = Quest.query.get_or_404(quest_id)
+    if quest.quest_type == 'manual':
+        return jsonify({'error': 'Manual quests require proof submission for review'}), 400
     user = User.query.get(user_id)
     
     # Here we would add specific verification logic based on quest.quest_type
     # For prototype, we assume instant completion
     
     if not existing:
-        uq = UserQuest(user_id=user_id, quest_id=quest_id, status='completed')
+        uq = UserQuest(user_id=user_id, quest_id=quest_id, status='completed', completed_at=datetime.utcnow())
         db.session.add(uq)
     else:
         existing.status = 'completed'
+        existing.completed_at = datetime.utcnow()
         
     user.points += quest.points
     user.xp += quest.points # 1 point = 1 XP for now
@@ -157,6 +181,78 @@ def complete_quest(quest_id):
     db.session.commit()
     
     return jsonify({'status': 'success', 'new_points': user.points})
+
+@quests_bp.route('/manual-submit/<int:quest_id>', methods=['POST'])
+def submit_manual_quest(quest_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    quest = Quest.query.get_or_404(quest_id)
+    if quest.quest_type != 'manual':
+        return jsonify({'error': 'Invalid quest type'}), 400
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    proof_link = (request.form.get('proof_link') or '').strip()
+    notes = (request.form.get('notes') or '').strip()
+
+    if not proof_link:
+        return jsonify({'error': 'Please provide a proof link so we can verify your submission.'}), 400
+
+    existing = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id).first()
+
+    if existing and existing.status == 'completed':
+        return jsonify({'error': 'Quest already completed'}), 400
+
+    if not existing:
+        existing = UserQuest(user_id=user_id, quest_id=quest_id)
+        db.session.add(existing)
+
+    existing.status = 'submitted'
+    existing.submission_link = proof_link or None
+    existing.submission_text = notes or None
+    existing.submitted_at = datetime.utcnow()
+    existing.verification_status = 'pending'
+    existing.completed_at = None
+    existing.admin_notes = None
+    existing.proof_data = None
+
+    db.session.commit()
+
+    return jsonify({
+        'status': 'success',
+        'message': 'Submission received! Our team will review your proof and award points once approved.'
+    })
+
+@quests_bp.route('/manual-ack/<int:quest_id>', methods=['POST'])
+def acknowledge_manual_rejection(quest_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    quest = Quest.query.get_or_404(quest_id)
+    if quest.quest_type != 'manual':
+        return jsonify({'error': 'Invalid quest type'}), 400
+
+    submission = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id).order_by(UserQuest.id.desc()).first()
+    if not submission or (submission.status != 'rejected' and submission.verification_status != 'rejected'):
+        return jsonify({'error': 'No rejected submission found for this quest.'}), 400
+
+    submission.status = 'pending'
+    submission.verification_status = 'pending'
+    submission.submission_link = None
+    submission.submission_text = None
+    submission.submitted_at = None
+    submission.admin_notes = None
+    submission.proof_data = None
+    submission.completed_at = None
+
+    db.session.commit()
+
+    return jsonify({'status': 'success', 'message': 'Acknowledged. You can submit new proof now.'})
 
 @quests_bp.route('/checkin/<int:quest_id>', methods=['POST'])
 def checkin_quest(quest_id):

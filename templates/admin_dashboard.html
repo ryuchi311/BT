@@ -241,7 +241,7 @@
                             placeholder="Channel ID, Tweet ID, etc.">
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div id="verificationCodeField" class="md:col-span-2 hidden">
                         <label class="block text-sm font-semibold text-gray-300 mb-2">Verification Code
                             (YouTube only - optional)</label>
                         <input type="text" name="verification_code" id="questVerificationCode"
@@ -302,6 +302,9 @@
                 questForm.action = urls.add_quest;
                 questIdInput.value = '';
                 questForm.reset();
+                // Ensure verification code field visibility matches selected platform
+                const platformEl = document.getElementById('questPlatform');
+                if (platformEl) toggleVerificationCodeField(platformEl.value);
                 openModal();
             }
 
@@ -335,7 +338,22 @@
                     document.getElementById('questExpires').value = '';
                 }
 
+                // Toggle verification code field depending on platform
+                toggleVerificationCodeField(quest.quest_type);
                 openModal();
+            }
+
+            // Show/hide the verification code input only for YouTube platform
+            function toggleVerificationCodeField(selectedPlatform) {
+                const wrapper = document.getElementById('verificationCodeField');
+                if (!wrapper) return;
+                if (selectedPlatform && selectedPlatform.toLowerCase() === 'youtube') {
+                    wrapper.classList.remove('hidden');
+                } else {
+                    wrapper.classList.add('hidden');
+                    const codeInput = document.getElementById('questVerificationCode');
+                    if (codeInput) codeInput.value = '';
+                }
             }
 
             function toggleQuest(questId, isActive) {
@@ -365,6 +383,14 @@
             document.getElementById('addQuestBtn').addEventListener('click', openAddModal);
             document.getElementById('closeModalBtn').addEventListener('click', closeModal);
             document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+
+            // Toggle verification code field when platform selection changes
+            const platformSelect = document.getElementById('questPlatform');
+            if (platformSelect) {
+                platformSelect.addEventListener('change', function (e) {
+                    toggleVerificationCodeField(e.target.value);
+                });
+            }
 
             // Close on escape
             document.addEventListener('keydown', (e) => {
