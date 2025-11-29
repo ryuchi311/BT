@@ -208,40 +208,42 @@ def edit_quest(quest_id):
     quest.verification_data = request.form.get('verification_data')
     # Save verification_code (used for YouTube quests)
     quest.verification_code = request.form.get('verification_code') or None
+    # Work with a copy of platform_config so SQLAlchemy notices changes reliably
+    current_config = {}
+    if quest.platform_config and isinstance(quest.platform_config, dict):
+        current_config = dict(quest.platform_config)
     # Platform-specific type
     platform_type = request.form.get('platform_type')
-    if not quest.platform_config:
-        quest.platform_config = {}
     if platform_type:
-        quest.platform_config['platform_type'] = platform_type
+        current_config['platform_type'] = platform_type
     if quest.quest_type == 'telegram':
         default_bot_setting = True
-        if quest.platform_config and isinstance(quest.platform_config, dict):
-            default_bot_setting = quest.platform_config.get('telegram_bot_verify', True)
+        if current_config:
+            default_bot_setting = current_config.get('telegram_bot_verify', True)
         use_bot_verification = _form_checkbox(request.form, 'telegram_bot_verify', default=default_bot_setting)
-        quest.platform_config['telegram_bot_verify'] = use_bot_verification
+        current_config['telegram_bot_verify'] = use_bot_verification
     elif quest.platform_config:
-        quest.platform_config.pop('telegram_bot_verify', None)
+        current_config.pop('telegram_bot_verify', None)
     # If saving a telegram quest and no platform_type provided, default to 'channel'
-    if quest.quest_type == 'telegram' and not quest.platform_config.get('platform_type'):
-        quest.platform_config['platform_type'] = 'channel'
+    if quest.quest_type == 'telegram' and not current_config.get('platform_type'):
+        current_config['platform_type'] = 'channel'
     # update chat id if provided
     if quest.quest_type == 'telegram' and request.form.get('verification_data'):
-        quest.platform_config['chat_id'] = request.form.get('verification_data')
+        current_config['chat_id'] = request.form.get('verification_data')
 
     # Attempt automatic detection of telegram chat type/title when possible (do not override explicit form)
-    if quest.quest_type == 'telegram' and quest.platform_config.get('chat_id'):
+    if quest.quest_type == 'telegram' and current_config.get('chat_id'):
         try:
-            detected = _detect_telegram_chat(quest.platform_config['chat_id'])
+            detected = _detect_telegram_chat(current_config['chat_id'])
             if detected:
-                if not quest.platform_config.get('platform_type') and detected.get('platform_type'):
-                    quest.platform_config['platform_type'] = detected.get('platform_type')
+                if not current_config.get('platform_type') and detected.get('platform_type'):
+                    current_config['platform_type'] = detected.get('platform_type')
                 if detected.get('chat_title'):
-                    quest.platform_config['chat_title'] = detected.get('chat_title')
+                    current_config['chat_title'] = detected.get('chat_title')
                 if detected.get('chat_username'):
-                    quest.platform_config['chat_username'] = detected.get('chat_username')
+                    current_config['chat_username'] = detected.get('chat_username')
         except Exception:
-            current_app.logger.exception('Failed to auto-detect telegram chat for %s', quest.platform_config.get('chat_id'))
+            current_app.logger.exception('Failed to auto-detect telegram chat for %s', current_config.get('chat_id'))
     
     expires_at_str = request.form.get('expires_at')
     if expires_at_str:
@@ -265,17 +267,18 @@ def edit_quest(quest_id):
     image_url_form = request.form.get('image_url')
     if image_url_form and image_url_form.strip():
         img = image_url_form.strip()
-        if not quest.platform_config:
-            quest.platform_config = {}
-        quest.platform_config['image'] = img
+        current_config['image'] = img
         try:
             is_img = _validate_image_url(img)
-            quest.platform_config['image_valid'] = bool(is_img)
+            current_config['image_valid'] = bool(is_img)
             if not is_img:
                 current_app.logger.warning('Image URL did not validate as image: %s', img)
         except Exception:
-            quest.platform_config['image_valid'] = False
+            current_config['image_valid'] = False
             current_app.logger.exception('Error validating image URL: %s', img)
+
+    # Assign back the possibly updated configuration
+    quest.platform_config = current_config if current_config else None
 
     db.session.commit()
     return redirect(url_for('admin.dashboard'))
