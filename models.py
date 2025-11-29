@@ -47,6 +47,7 @@ class Quest(db.Model):
     action_url = db.Column(db.String(256)) # URL to perform the action
     category = db.Column(db.String(64)) # Social, Engagement, Educational, Reward
     expires_at = db.Column(db.DateTime) # Expiration date/time
+    starts_at = db.Column(db.DateTime) # Optional start date/time
     is_active = db.Column(db.Boolean, default=True) # Active status
     
     # Platform-specific configuration
@@ -67,7 +68,9 @@ class Quest(db.Model):
             'verification_data': self.verification_data,
             'verification_code': self.verification_code,
             'category': self.category,
+            'starts_at': self.starts_at.isoformat() if self.starts_at else None,
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'platform_config': self.platform_config if self.platform_config else None,
             'is_active': self.is_active
         }
 

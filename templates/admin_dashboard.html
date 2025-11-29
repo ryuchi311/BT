@@ -24,7 +24,7 @@
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen p-4 md:p-8 pb-24">
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen p-4 md:p-8 pb-[90px]" style="padding-bottom: 90px;">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
@@ -44,7 +44,7 @@
             <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:scale-[1.02]
                 {% if not quest.is_active %}opacity-60{% endif %}">
                 <!-- Card Header -->
-                <div class="p-4 bg-gradient-to-r
+                <div class="p-4 bg-gradient-to-r relative z-20
                     {% if quest.quest_type == 'telegram' %}from-blue-600/20 to-blue-500/10 border-b border-blue-500/20
                     {% elif quest.quest_type == 'twitter' %}from-sky-600/20 to-sky-500/10 border-b border-sky-500/20
                     {% elif quest.quest_type == 'youtube' %}from-red-600/20 to-red-500/10 border-b border-red-500/20
@@ -52,7 +52,15 @@
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-3xl">
                             {% if quest.quest_type == 'telegram' %}
-                                <i class="fab fa-telegram text-blue-400"></i>
+                                {% if quest.platform_config and quest.platform_config.get('image') %}
+                                    <img src="{{ quest.platform_config.get('image') }}" alt="Telegram" class="w-8 h-8 rounded-full border" />
+                                {% else %}
+                                    <!-- Inline Telegram SVG fallback -->
+                                    <svg class="w-8 h-8 text-blue-400" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                                        <circle cx="120" cy="120" r="120" fill="#2AABEE"/>
+                                        <path d="M50 120l140-40-40 140-30-50-20 20-50-70z" fill="#fff" opacity="0.95"/>
+                                    </svg>
+                                {% endif %}
                             {% elif quest.quest_type == 'twitter' %}
                                 <i class="fab fa-twitter text-sky-400"></i>
                             {% elif quest.quest_type == 'youtube' %}
@@ -73,6 +81,18 @@
                                 {% else %}bg-green-500/30 text-green-200{% endif %}">
                                 {{ quest.quest_type.upper() }}
                             </span>
+                            {% if quest.quest_type == 'telegram' and quest.platform_config and quest.platform_config.get('platform_type') %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-700/30 text-white">
+                                {{ quest.platform_config.get('platform_type')|upper }}
+                            </span>
+                            {% endif %}
+                            {% if quest.quest_type == 'telegram' and quest.platform_config %}
+                                {% if quest.platform_config.get('telegram_bot_verify', True) %}
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-100">BOT VERIFIED</span>
+                                {% else %}
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-100">MANUAL PASS</span>
+                                {% endif %}
+                            {% endif %}
                             {% if quest.category %}
                             <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/30 text-purple-200">
                                 {{ quest.category }}
@@ -83,8 +103,27 @@
                 </div>
 
                 <!-- Card Body -->
-                <div class="p-4 space-y-3">
+                <div class="p-4 space-y-3 pt-6">
+                    {% if quest.platform_config and quest.platform_config.get('image') %}
+                    <div class="flex items-start gap-3">
+                        <div class="relative">
+                            <img src="{{ quest.platform_config.get('image') }}" alt="Preview" class="w-16 h-16 rounded-lg object-cover border" />
+                            {% if quest.platform_config and quest.platform_config.get('chat_id') %}
+                            <div class="text-xs text-gray-300 mt-2">Chat: {{ quest.platform_config.get('chat_id') }}</div>
+                            {% elif quest.verification_data %}
+                            <div class="text-xs text-gray-300 mt-2">Chat: {{ quest.verification_data }}</div>
+                            {% endif %}
+                            {% if quest.platform_config and quest.platform_config.get('image_valid') is not none and not quest.platform_config.get('image_valid') %}
+                            <span title="Image appears invalid" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 rounded-full">!</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">{{ quest.title }}</h3>
+                        </div>
+                    </div>
+                    {% else %}
                     <h3 class="text-xl font-bold text-white">{{ quest.title }}</h3>
+                    {% endif %}
                     <div class="quest-description-container">
                         <p class="text-sm text-gray-300 quest-description" data-quest-id="{{ quest.id }}">
                             {{ quest.description or 'No description' }}
@@ -118,8 +157,12 @@
                     <div class="flex items-center justify-between pt-3 border-t border-white/10">
                         <div class="flex items-center gap-3">
                             <span class="text-yellow-400 font-bold text-lg">💰 {{ quest.points }}</span>
-                            {% if quest.expires_at %}
-                            <span class="text-xs text-gray-400">⏰ {{ quest.expires_at.strftime('%Y-%m-%d') }}</span>
+                            {% if quest.starts_at and quest.expires_at %}
+                            <span class="text-xs text-gray-400">⏰ {{ quest.starts_at.strftime('%Y-%m-%d') }} → {{ quest.expires_at.strftime('%Y-%m-%d') }}</span>
+                            {% elif quest.starts_at %}
+                            <span class="text-xs text-gray-400">⏳ Starts {{ quest.starts_at.strftime('%Y-%m-%d') }}</span>
+                            {% elif quest.expires_at %}
+                            <span class="text-xs text-gray-400">⏰ Expires {{ quest.expires_at.strftime('%Y-%m-%d') }}</span>
                             {% endif %}
                         </div>
                         {% if not quest.is_active %}
@@ -130,6 +173,11 @@
 
                 <!-- Card Actions -->
                 <div class="p-4 bg-white/5 border-t border-white/10 flex gap-2">
+                    <a href="{{ url_for('quests.verify_quest', quest_id=quest.id) }}" target="_blank" rel="noopener"
+                        class="preview-quest-btn flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-semibold text-sm transition-colors">
+                        👁️ Preview
+                    </a>
+
                     <button
                         class="edit-quest-btn flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold text-sm transition-colors"
                         data-quest-id="{{ quest.id }}">
@@ -167,7 +215,7 @@
                 <button id="closeModalBtn" class="text-gray-400 hover:text-white text-2xl">✕</button>
             </div>
 
-            <form id="questForm" method="POST" class="space-y-4">
+            <form id="questForm" method="POST" enctype="multipart/form-data" class="space-y-4">
                 <input type="hidden" id="questId" name="quest_id">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,6 +248,26 @@
                         </select>
                     </div>
 
+                    <div id="telegramTypeField" style="display:none;">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Telegram Type</label>
+                        <select name="platform_type" id="platformType" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white" style="color: white; background-color: #1f2937;">
+                            <option value="channel" style="background-color: #1f2937; color: white;">Channel</option>
+                            <option value="group" style="background-color: #1f2937; color: white;">Group</option>
+                        </select>
+                    </div>
+
+                    <div id="telegramBotVerifyField" class="md:col-span-2 hidden">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Telegram Verification</label>
+                        <input type="hidden" name="telegram_bot_verify" value="0">
+                        <label class="flex items-start gap-3 p-4 rounded-xl border border-white/10 bg-white/5 cursor-pointer">
+                            <input type="checkbox" name="telegram_bot_verify" id="telegramBotVerify" value="1" class="mt-1 h-5 w-5 text-blue-400 focus:ring-blue-500" checked>
+                            <span class="text-sm text-gray-200 leading-relaxed">
+                                Require the Telegram bot to confirm membership & username match.<br>
+                                <span class="text-xs text-gray-400">Uncheck to allow manual approval without Telegram checks.</span>
+                            </span>
+                        </label>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-semibold text-gray-300 mb-2">Category *</label>
                         <select name="category" id="questCategory" required
@@ -221,6 +289,12 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Start (Optional)</label>
+                        <input type="datetime-local" name="starts_at" id="questStarts"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-semibold text-gray-300 mb-2">Expiration (Optional)</label>
                         <input type="datetime-local" name="expires_at" id="questExpires"
                             class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
@@ -236,9 +310,27 @@
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-gray-300 mb-2">Verification Data
                             (Optional)</label>
-                        <input type="text" name="verification_data" id="questVerification"
+                        <div class="flex gap-2">
+                            <input type="text" name="verification_data" id="questVerification"
                             class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                             placeholder="Channel ID, Tweet ID, etc.">
+                            <button type="button" id="fetchTelegramImageBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm" style="display:none;">Fetch Image</button>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Quest Image (optional)</label>
+                        <div class="flex gap-2 items-center">
+                            <input type="url" name="image_url" id="questImageUrl" placeholder="https://example.com/image.jpg"
+                                class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Provide a direct image URL (no uploading). The URL will be used directly.</p>
+                        <div id="imagePreviewContainer" class="mt-3" style="display:none;">
+                            <div class="relative inline-block">
+                                <img id="imagePreview" src="" class="w-24 h-24 rounded-full border" alt="Preview">
+                                <span id="imageValidBadge" class="hidden absolute -bottom-2 right-0 px-2 py-1 rounded text-xs"></span>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="verificationCodeField" class="md:col-span-2 hidden">
@@ -302,9 +394,16 @@
                 questForm.action = urls.add_quest;
                 questIdInput.value = '';
                 questForm.reset();
+                const botCheckbox = document.getElementById('telegramBotVerify');
+                if (botCheckbox) {
+                    botCheckbox.checked = true;
+                }
                 // Ensure verification code field visibility matches selected platform
                 const platformEl = document.getElementById('questPlatform');
-                if (platformEl) toggleVerificationCodeField(platformEl.value);
+                if (platformEl) {
+                    toggleVerificationCodeField(platformEl.value);
+                    toggleTelegramTypeField(platformEl.value);
+                }
                 openModal();
             }
 
@@ -323,6 +422,24 @@
                 document.getElementById('questPoints').value = quest.points;
                 document.getElementById('questUrl').value = quest.action_url || '';
                 document.getElementById('questVerification').value = quest.verification_data || '';
+                // Set platform type if available
+                const platformTypeEl = document.getElementById('platformType');
+                if (platformTypeEl && quest.platform_config && quest.platform_config.platform_type) {
+                    platformTypeEl.value = quest.platform_config.platform_type;
+                }
+                const botCheckbox = document.getElementById('telegramBotVerify');
+                if (botCheckbox) {
+                    let useBot = true;
+                    if (quest.platform_config && typeof quest.platform_config.telegram_bot_verify !== 'undefined') {
+                        const flag = quest.platform_config.telegram_bot_verify;
+                        if (typeof flag === 'string') {
+                            useBot = !['0', 'false', 'no', 'off'].includes(flag.toLowerCase());
+                        } else {
+                            useBot = Boolean(flag);
+                        }
+                    }
+                    botCheckbox.checked = useBot;
+                }
                 // Populate verification_code if present
                 const codeEl = document.getElementById('questVerificationCode');
                 if (codeEl) codeEl.value = quest.verification_code || '';
@@ -337,10 +454,65 @@
                 } else {
                     document.getElementById('questExpires').value = '';
                 }
+                if (quest.starts_at) {
+                    const sDate = new Date(quest.starts_at);
+                    const sDateString = new Date(sDate.getTime() - (sDate.getTimezoneOffset() * 60000))
+                        .toISOString()
+                        .slice(0, 16);
+                    document.getElementById('questStarts').value = sDateString;
+                } else {
+                    document.getElementById('questStarts').value = '';
+                }
+
+                // Image preview and validation badge
+                const preview = document.getElementById('imagePreview');
+                const previewContainer = document.getElementById('imagePreviewContainer');
+                const badge = document.getElementById('imageValidBadge');
+                if (quest.platform_config && quest.platform_config.image) {
+                    if (preview) { preview.src = quest.platform_config.image; }
+                    if (previewContainer) { previewContainer.style.display = 'block'; }
+                    if (badge) {
+                        if (quest.platform_config.image_valid === false) {
+                            badge.className = 'absolute -bottom-2 right-0 px-2 py-1 rounded text-xs bg-red-600 text-white';
+                            badge.textContent = 'Invalid';
+                            badge.classList.remove('hidden');
+                        } else if (quest.platform_config.image_valid === true) {
+                            badge.className = 'absolute -bottom-2 right-0 px-2 py-1 rounded text-xs bg-green-600 text-white';
+                            badge.textContent = 'OK';
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.className = 'hidden';
+                        }
+                    }
+                } else {
+                    if (preview) { preview.src = ''; }
+                    if (previewContainer) { previewContainer.style.display = 'none'; }
+                    if (badge) { badge.className = 'hidden'; }
+                }
 
                 // Toggle verification code field depending on platform
                 toggleVerificationCodeField(quest.quest_type);
+                toggleTelegramTypeField(quest.quest_type);
+                // Show fetch button for edits (we have a quest id)
+                const fetchBtn = document.getElementById('fetchTelegramImageBtn');
+                if (fetchBtn) fetchBtn.style.display = quest.quest_type === 'telegram' ? 'inline-block' : 'none';
                 openModal();
+            }
+
+            function toggleTelegramTypeField(selectedPlatform) {
+                const wrapper = document.getElementById('telegramTypeField');
+                const fetchBtn = document.getElementById('fetchTelegramImageBtn');
+                const botField = document.getElementById('telegramBotVerifyField');
+                if (!wrapper) return;
+                if (selectedPlatform && selectedPlatform.toLowerCase() === 'telegram') {
+                    wrapper.style.display = '';
+                    if (botField) botField.classList.remove('hidden');
+                    if (fetchBtn && document.getElementById('questId').value) fetchBtn.style.display = 'inline-block';
+                } else {
+                    wrapper.style.display = 'none';
+                    if (botField) botField.classList.add('hidden');
+                    if (fetchBtn) fetchBtn.style.display = 'none';
+                }
             }
 
             // Show/hide the verification code input only for YouTube platform
@@ -389,6 +561,68 @@
             if (platformSelect) {
                 platformSelect.addEventListener('change', function (e) {
                     toggleVerificationCodeField(e.target.value);
+                    toggleTelegramTypeField(e.target.value);
+                });
+            }
+
+            // Handle fetch telegram image button
+            const fetchImgBtn = document.getElementById('fetchTelegramImageBtn');
+            if (fetchImgBtn) {
+                fetchImgBtn.addEventListener('click', async function () {
+                    const qid = document.getElementById('questId').value;
+                    if (!qid) { showError('Please save the quest first so we can fetch the image.'); return; }
+                    const chatId = document.getElementById('questVerification').value;
+                    const platformType = document.getElementById('platformType') ? document.getElementById('platformType').value : 'channel';
+                    showInfo('Fetching image from Telegram...');
+                    try {
+                        const res = await fetch(`/admin/quest/fetch_telegram_image_telethon/${qid}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ chat_id: chatId, platform_type: platformType })
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            showSuccess('Image fetched and saved.');
+                            // show image preview in the modal
+                            const preview = document.getElementById('imagePreview');
+                            if (preview) {
+                                preview.src = data.image_url;
+                                document.getElementById('imagePreviewContainer').style.display = 'block';
+                            }
+                        } else {
+                            showError(data.error || 'Failed to fetch image');
+                        }
+                    } catch (e) {
+                        showError('Network error fetching image');
+                    }
+                });
+            }
+
+            // Image preview for uploaded or URL images
+            const imageFileInput = document.getElementById('questImageFile');
+            const imageUrlInput = document.getElementById('questImageUrl');
+            const previewImg = document.getElementById('imagePreview');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+
+            if (imageFileInput) {
+                imageFileInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const url = URL.createObjectURL(file);
+                    if (previewImg) {
+                        previewImg.src = url;
+                        previewContainer.style.display = 'block';
+                    }
+                });
+            }
+
+            if (imageUrlInput) {
+                imageUrlInput.addEventListener('change', function (e) {
+                    const url = e.target.value.trim();
+                    if (url && previewImg) {
+                        previewImg.src = url;
+                        previewContainer.style.display = 'block';
+                    }
                 });
             }
 

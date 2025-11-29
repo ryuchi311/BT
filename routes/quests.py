@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for
 from models import db, Quest, UserQuest, User, DailyCheckIn
 from datetime import datetime, date, timedelta
+import os
+import requests
 
 quests_bp = Blueprint('quests', __name__)
 
@@ -253,6 +255,99 @@ def acknowledge_manual_rejection(quest_id):
     db.session.commit()
 
     return jsonify({'status': 'success', 'message': 'Acknowledged. You can submit new proof now.'})
+
+@quests_bp.route('/verify-telegram/<int:quest_id>', methods=['POST'])
+def verify_telegram_membership(quest_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    quest = Quest.query.get_or_404(quest_id)
+    user = User.query.get(user_id)
+
+    if quest.quest_type != 'telegram':
+        return jsonify({'error': 'Invalid quest type'}), 400
+
+    # Check if already completed
+    existing = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id, status='completed').first()
+    if existing:
+        return jsonify({'success': True, 'message': 'Already completed', 'points': quest.points, 'new_total_points': user.points})
+
+    latest_submission = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id).order_by(UserQuest.id.desc()).first()
+
+    def award_success(submission):
+        if submission:
+            submission.status = 'completed'
+            submission.verification_status = 'verified'
+            submission.completed_at = datetime.utcnow()
+        else:
+            db.session.add(UserQuest(
+                user_id=user_id,
+                quest_id=quest_id,
+                status='completed',
+                verification_status='verified',
+                completed_at=datetime.utcnow()
+            ))
+        user.points += quest.points
+        user.xp += quest.points
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'points': quest.points,
+            'new_total_points': user.points
+        })
+
+    platform_config = quest.platform_config or {}
+    require_bot = True
+    if 'telegram_bot_verify' in platform_config:
+        flag = platform_config.get('telegram_bot_verify')
+        if isinstance(flag, str):
+            require_bot = flag.strip().lower() in ('1', 'true', 'yes', 'on', 'y')
+        else:
+            require_bot = bool(flag)
+
+    if not require_bot:
+        return award_success(latest_submission)
+
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    chat_id = platform_config.get('chat_id') if isinstance(platform_config, dict) else None
+    if not chat_id:
+        chat_id = quest.verification_data
+
+    if not bot_token or not chat_id:
+        return jsonify({'error': 'Server configuration error (Missing Token or Chat ID)'}), 500
+
+    if not user.telegram_id:
+        return jsonify({'error': 'Your account is not linked to Telegram.'}), 400
+
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/getChatMember"
+        params = {'chat_id': chat_id, 'user_id': user.telegram_id}
+
+        resp = requests.get(url, params=params, timeout=10)
+        data = resp.json()
+
+        if not data.get('ok'):
+            return jsonify({'error': f"Telegram API Error: {data.get('description')}"}), 400
+
+        result = data.get('result', {})
+        status = result.get('status')
+        valid_statuses = ['member', 'administrator', 'creator', 'restricted']
+
+        if status not in valid_statuses:
+            return jsonify({'error': 'You are not a member of the group/channel yet. Please join and try again.'}), 400
+
+        member_user = result.get('user') or {}
+        member_username = member_user.get('username')
+        if user.username and member_username and user.username.lower() != member_username.lower():
+            return jsonify({'error': 'Telegram username mismatch. Please verify you joined with the correct account.'}), 400
+        if not user.username and member_username:
+            user.username = member_username
+
+        return award_success(latest_submission)
+
+    except Exception as e:
+        return jsonify({'error': f"Verification failed: {str(e)}"}), 500
 
 @quests_bp.route('/checkin/<int:quest_id>', methods=['POST'])
 def checkin_quest(quest_id):

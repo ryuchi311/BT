@@ -16,8 +16,14 @@
                     <i class="fas fa-link text-4xl text-green-400"></i>
                     {% elif quest.quest_type == 'manual' %}
                     <i class="fas fa-user-check text-4xl text-cyan-400"></i>
-                    {% else %}
+                    {% elif quest.quest_type == 'telegram' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-12 h-12 text-blue-400" aria-hidden="true">
+                        <path d="M21.5 3.5L2.5 10.8c-.8.3-.8 1 .1 1.2l4 1.1 1.4 4.6c.2.6.9.7 1.2.2l2.1-3 4.9 3.6c.6.4 1.4-.1 1-1L21.5 3.5c-.2-.6-.9-.8-1.4-.5z" />
+                    </svg>
+                    {% elif quest.quest_type == 'youtube' %}
                     <i class="fab fa-youtube text-4xl text-red-500"></i>
+                    {% else %}
+                    <i class="fas fa-bullseye text-4xl text-gray-300"></i>
                     {% endif %}
                 </div>
                 <h1 class="text-3xl font-bold text-white uppercase tracking-widest glitch-text mb-2"
@@ -128,9 +134,78 @@
                 </form>
             </div>
             {% endif %}
-            {% else %}
+            {% elif quest.quest_type == 'telegram' %}
+            <div id="telegramSection" class="space-y-8">
+                <!-- Main Card -->
+                <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-blue-500/30 p-8 relative overflow-hidden group">
+                    <!-- Background Glow -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+                    
+                    <div class="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                        <!-- Left: Logo -->
+                        <div class="flex-shrink-0">
+                                <div class="w-32 h-32 rounded-full bg-gradient-to-b from-blue-400/20 to-blue-600/20 flex items-center justify-center border border-blue-400/50 shadow-[0_0_30px_rgba(59,130,246,0.3)] group-hover:shadow-[0_0_50px_rgba(59,130,246,0.5)] transition-all duration-500 overflow-hidden">
+                                    {% if quest.platform_config and quest.platform_config.get('image') %}
+                                    <img src="{{ quest.platform_config.get('image') }}" alt="Channel Logo" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-16 h-16 text-blue-400" aria-hidden="true" style="filter: drop-shadow(0 0 10px rgba(59,130,246,0.8));">
+                                        <path d="M21.5 3.5L2.5 10.8c-.8.3-.8 1 .1 1.2l4 1.1 1.4 4.6c.2.6.9.7 1.2.2l2.1-3 4.9 3.6c.6.4 1.4-.1 1-1L21.5 3.5c-.2-.6-.9-.8-1.4-.5z" />
+                                    </svg>
+                                    {% endif %}
+                                </div>
+                        </div>
 
-            <!-- Step 1: Start Watch Button -->
+                        <!-- Right: Details -->
+                        <div class="flex-grow text-center md:text-left space-y-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-white mb-2 uppercase tracking-wider">
+                                        <span class="text-blue-400">Step 1:</span>
+                                        {% if quest.platform_config and quest.platform_config.get('platform_type') == 'group' %}
+                                            Join Group
+                                        {% else %}
+                                            Join Channel
+                                        {% endif %}
+                                    </h2>
+                                <p class="text-gray-300 text-lg leading-relaxed">
+                                    Join the official channel to unlock exclusive rewards and updates.
+                                </p>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start pt-2">
+                                    <a href="{{ quest.action_url }}" target="_blank" rel="noopener" id="joinTelegramBtn"
+                                   class="inline-flex items-center justify-center gap-3 bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-blue-500/50 uppercase tracking-widest">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-white" aria-hidden="true">
+                                            <path d="M21.5 3.5L2.5 10.8c-.8.3-.8 1 .1 1.2l4 1.1 1.4 4.6c.2.6.9.7 1.2.2l2.1-3 4.9 3.6c.6.4 1.4-.1 1-1L21.5 3.5c-.2-.6-.9-.8-1.4-.5z" />
+                                        </svg>
+                                        <span>{% if quest.platform_config and quest.platform_config.get('platform_type') == 'group' %}Join Group{% else %}Join Channel{% endif %}</span>
+                                    </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification Section -->
+                <div class="bg-cyber-black/40 rounded-2xl border border-white/5 p-8 text-center relative">
+                    <h2 class="text-xl font-bold text-white mb-6 uppercase tracking-wider">
+                        <span class="text-cyber-gold">Step 2:</span> Verify Membership
+                    </h2>
+                    
+                    <div class="max-w-md mx-auto">
+                        <button id="verifyTelegramBtn" disabled
+                            class="w-full bg-gray-600 text-gray-400 font-bold py-5 rounded-xl transition-all shadow-none uppercase tracking-[0.2em] text-lg relative overflow-hidden cursor-not-allowed opacity-50 grayscale">
+                            <span class="relative z-10 flex items-center justify-center gap-3">
+                                <i class="fas fa-lock"></i>
+                                Verify & Claim
+                            </span>
+                        </button>
+                        <p class="text-gray-500 text-xs mt-4 font-mono">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Make sure you have joined before verifying.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
             <div id="startSection" class="text-center">
                 <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Mission Briefing</h2>
                 <p class="text-gray-400 mb-6 font-mono text-sm">
@@ -145,9 +220,17 @@
                     {% if quest.quest_type == 'visit' %}
                     <i class="fas fa-link mr-2"></i>
                     Visit Link
-                    {% else %}
+                    {% elif quest.quest_type == 'youtube' %}
                     <i class="fab fa-youtube mr-2"></i>
                     Start Mission
+                    {% elif quest.quest_type == 'telegram' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 mr-2 inline-block text-white" aria-hidden="true">
+                        <path d="M21.5 3.5L2.5 10.8c-.8.3-.8 1 .1 1.2l4 1.1 1.4 4.6c.2.6.9.7 1.2.2l2.1-3 4.9 3.6c.6.4 1.4-.1 1-1L21.5 3.5c-.2-.6-.9-.8-1.4-.5z" />
+                    </svg>
+                    Start Mission
+                    {% else %}
+                    <i class="fas fa-play mr-2"></i>
+                    Start
                     {% endif %}
                 </button>
             </div>
@@ -233,6 +316,31 @@
                 <i class="fas fa-arrow-left mr-2"></i>
                 Abort Mission
             </a>
+        </div>
+    </div>
+</div>
+
+<!-- Verification Overlay -->
+<div id="verificationOverlay" class="fixed inset-0 z-[90] hidden flex items-center justify-center bg-cyber-black/95 backdrop-blur-md transition-opacity duration-300">
+    <div class="text-center relative">
+        <!-- Hexagon Background -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyber-gold/5 clip-path-polygon animate-pulse"></div>
+        
+        <div class="relative w-32 h-32 mx-auto mb-8">
+            <!-- Outer Ring -->
+            <div class="absolute inset-0 border-4 border-cyber-gold/20 rounded-full"></div>
+            <!-- Spinning Ring -->
+            <div class="absolute inset-0 border-4 border-t-cyber-gold border-r-transparent border-b-cyber-gold border-l-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(254,189,17,0.5)]"></div>
+            <!-- Inner Pulse -->
+            <div class="absolute inset-4 bg-cyber-gold/10 rounded-full animate-ping"></div>
+            <!-- Icon -->
+            <i class="fas fa-satellite-dish text-4xl text-cyber-gold absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse drop-shadow-[0_0_10px_rgba(254,189,17,0.8)]"></i>
+        </div>
+        
+        <h3 class="text-3xl font-bold text-white uppercase tracking-[0.2em] mb-3 glitch-text" data-text="Verifying...">Verifying...</h3>
+        <div class="flex flex-col gap-1 items-center">
+            <p class="text-cyber-gold font-mono text-sm animate-pulse tracking-widest">ESTABLISHING SECURE UPLINK</p>
+            <p id="verificationStatusText" class="text-gray-500 font-mono text-xs tracking-wider">Scanning blockchain ledger...</p>
         </div>
     </div>
 </div>
@@ -735,10 +843,85 @@
         }, 250);
     }
 
+    const joinTelegramBtn = document.getElementById('joinTelegramBtn');
+    const verifyTelegramBtn = document.getElementById('verifyTelegramBtn');
+    const verificationOverlay = document.getElementById('verificationOverlay');
+    const verificationStatusText = document.getElementById('verificationStatusText');
+
+    if (joinTelegramBtn) {
+        joinTelegramBtn.addEventListener('click', () => {
+            if (verifyTelegramBtn) {
+                verifyTelegramBtn.disabled = false;
+                verifyTelegramBtn.classList.remove('bg-gray-600', 'text-gray-400', 'cursor-not-allowed', 'opacity-50', 'grayscale');
+                verifyTelegramBtn.classList.add('bg-gradient-to-r', 'from-cyber-gold', 'to-yellow-500', 'hover:from-yellow-400', 'hover:to-yellow-300', 'text-cyber-black', 'transform', 'hover:scale-105', 'shadow-lg', 'hover:shadow-neon-gold');
+            }
+        });
+    }
+
+    if (verifyTelegramBtn) {
+        verifyTelegramBtn.addEventListener('click', verifyTelegramMembership);
+    }
+
     if (continueBtn) {
         continueBtn.addEventListener('click', () => {
             window.location.href = '/quests/';
         });
+    }
+
+    async function verifyTelegramMembership() {
+        if (!verifyTelegramBtn) return;
+        
+        // Show Overlay
+        if (verificationOverlay) {
+            verificationOverlay.classList.remove('hidden');
+        }
+
+        // Simulate scanning process for effect
+        const statusMessages = [
+            "Scanning blockchain ledger...",
+            "Verifying digital signature...",
+            "Handshaking with Telegram API...",
+            "Confirming membership status..."
+        ];
+
+        let msgIndex = 0;
+        const msgInterval = setInterval(() => {
+            if (verificationStatusText && msgIndex < statusMessages.length) {
+                verificationStatusText.textContent = statusMessages[msgIndex];
+                msgIndex++;
+            }
+        }, 7000);
+
+        // Wait for animation (min 30 seconds)
+        await new Promise(resolve => setTimeout(resolve, 30000));
+        clearInterval(msgInterval);
+
+        try {
+            const response = await fetch(`/quests/verify-telegram/${questId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            // Hide Overlay
+            if (verificationOverlay) {
+                verificationOverlay.classList.add('hidden');
+            }
+
+            if (data.success) {
+                showCongratulations(data.points, data.new_total_points);
+            } else {
+                showError(data.error || 'Verification failed. Please ensure you have joined the group/channel.');
+            }
+        } catch (error) {
+            if (verificationOverlay) {
+                verificationOverlay.classList.add('hidden');
+            }
+            showError('Network error. Please try again.');
+        }
     }
 </script>
 {% endblock %}
