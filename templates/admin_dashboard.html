@@ -68,7 +68,11 @@
                             {% elif quest.quest_type == 'daily_checkin' %}
                                 <i class="fas fa-calendar-check text-orange-400"></i>
                             {% elif quest.quest_type == 'manual' %}
-                                <i class="fas fa-hand-paper text-purple-400"></i>
+                                {% if quest.platform_config and quest.platform_config.get('image') %}
+                                    <img src="{{ quest.platform_config.get('image') }}" alt="Manual" class="w-8 h-8 rounded-full border" />
+                                {% else %}
+                                    <i class="fas fa-hand-paper text-purple-400"></i>
+                                {% endif %}
                             {% elif quest.quest_type == 'visit' %}
                                 {% if quest.platform_config and quest.platform_config.get('image') %}
                                     <img src="{{ quest.platform_config.get('image') }}" alt="Site" class="w-8 h-8 rounded-full border" />
@@ -739,15 +743,37 @@
             }
 
             // Also adjust badge based on actual image load outcomes to handle CORS fallbacks
+            // These handlers take precedence: if the image loads in the browser, it's valid; if it errors, it's invalid.
             if (previewImg) {
                 previewImg.addEventListener('load', function () {
-                    if (badgeEl && (badgeEl.className === 'hidden' || badgeEl.textContent === '')) {
+                    // Always update badge to OK when image loads successfully (overrides any prior validation state)
+                    if (badgeEl) {
                         badgeEl.className = 'absolute -bottom-2 right-0 px-2 py-1 rounded text-xs bg-green-600 text-white';
                         badgeEl.textContent = 'OK';
                         badgeEl.classList.remove('hidden');
                     }
+                    // If editing a saved quest, update the dashboard card to reflect the successful load
+                    const qidVal = (document.getElementById('questId') || {}).value || null;
+                    if (qidVal) {
+                        try {
+                            const card = document.querySelector(`[data-quest-id="${qidVal}"]`);
+                            if (card) {
+                                const headerIcon = card.querySelector('span.text-3xl');
+                                if (headerIcon && previewImg.src) {
+                                    headerIcon.innerHTML = `<img src="${previewImg.src}" alt="Site" class="w-8 h-8 rounded-full border" />`;
+                                }
+                                const bodyPreview = card.querySelector('img.w-16');
+                                if (bodyPreview && previewImg.src) bodyPreview.src = previewImg.src;
+                                const invalidBadge = card.querySelector('span[title="Image appears invalid"]');
+                                if (invalidBadge) invalidBadge.remove();
+                            }
+                        } catch (e) {
+                            // ignore
+                        }
+                    }
                 });
                 previewImg.addEventListener('error', function () {
+                    // Always update badge to Invalid when image fails to load
                     if (badgeEl) {
                         badgeEl.className = 'absolute -bottom-2 right-0 px-2 py-1 rounded text-xs bg-red-600 text-white';
                         badgeEl.textContent = 'Invalid';
