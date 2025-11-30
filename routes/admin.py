@@ -5,6 +5,12 @@ import hashlib
 import requests
 from flask import current_app
 from datetime import datetime
+from urllib.parse import urlparse
+# Import site metadata helper
+try:
+    from scripts.get_website_icon import get_icon_and_domain
+except Exception:
+    get_icon_and_domain = None
 
 # Telethon (user client) for Option B
 try:
@@ -502,6 +508,84 @@ def delete_quest(quest_id):
     db.session.delete(quest)
     db.session.commit()
     return jsonify({'status': 'success'})
+
+
+@admin_bp.route('/fetch_site_meta', methods=['POST'])
+def fetch_site_meta():
+    """Fetch site metadata (icon URL, domain, title) for a provided URL.
+    This endpoint does not persist anything — it only returns metadata so the admin UI can populate the image field.
+    Expects JSON body: { "url": "https://example.com" }
+    """
+    if not get_icon_and_domain:
+        return jsonify({'success': False, 'error': 'Site metadata helper not available on server.'}), 500
+    body = request.get_json(silent=True) or {}
+    url = body.get('url') or request.form.get('url')
+    if not url:
+        return jsonify({'success': False, 'error': 'No URL provided.'}), 400
+    try:
+        meta = get_icon_and_domain(url)
+        return jsonify({'success': True, 'meta': meta})
+    except Exception as e:
+        current_app.logger.exception('Failed to fetch site meta for %s', url)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@admin_bp.route('/quest/fetch_website_icon/<int:quest_id>', methods=['POST'])
+def fetch_website_icon(quest_id):
+    """Fetch a website's icon, download it into `static/images`, and attach it to the quest's platform_config.image.
+    Accepts JSON or form field `url` (the site URL). If not provided, falls back to quest.action_url.
+    Returns JSON {success: True, image_url: '/static/images/...' }
+    """
+    if not get_icon_and_domain:
+        return jsonify({'success': False, 'error': 'Site metadata helper not available on server.'}), 500
+    quest = Quest.query.get_or_404(quest_id)
+    body = request.get_json(silent=True) or {}
+    url = body.get('url') or request.form.get('url') or quest.action_url
+    if not url:
+        return jsonify({'success': False, 'error': 'No URL provided or found on quest.'}), 400
+    try:
+        meta = get_icon_and_domain(url)
+        icon_url = meta.get('icon_url') if isinstance(meta, dict) else None
+        if not icon_url:
+            return jsonify({'success': False, 'error': 'No icon found for the provided URL.'}), 400
+
+        # download icon
+        resp = requests.get(icon_url, timeout=15)
+        resp.raise_for_status()
+        content = resp.content
+
+        sha = hashlib.sha256(content).hexdigest()
+        parsed = os.path.splitext(urlparse(icon_url).path)[1] if 'urlparse' in globals() else os.path.splitext(icon_url)[1]
+        _, ext = os.path.splitext(urlparse(icon_url).path)
+        if not ext:
+            ext = '.png'
+
+        images_dir = os.path.join(current_app.root_path, 'static', 'images')
+        os.makedirs(images_dir, exist_ok=True)
+        filename = f'website_{sha}{ext}'
+        filepath = os.path.join(images_dir, filename)
+
+        if not os.path.exists(filepath):
+            with open(filepath, 'wb') as fh:
+                fh.write(content)
+
+        # attach to quest.platform_config
+        if not quest.platform_config or not isinstance(quest.platform_config, dict):
+            quest.platform_config = {}
+        quest.platform_config['image'] = f'/static/images/{filename}'
+        quest.platform_config['image_valid'] = True
+        # store domain/title for convenience
+        if isinstance(meta, dict):
+            if meta.get('domain'):
+                quest.platform_config['domain'] = meta.get('domain')
+            if meta.get('title'):
+                quest.platform_config['site_title'] = meta.get('title')
+
+        db.session.commit()
+        return jsonify({'success': True, 'image_url': quest.platform_config['image']})
+    except Exception as e:
+        current_app.logger.exception('Failed to fetch/download website icon for %s', url)
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @admin_bp.route('/quest/toggle/<int:quest_id>', methods=['POST'])
 def toggle_quest(quest_id):

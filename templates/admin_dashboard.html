@@ -41,7 +41,7 @@
         <!-- Quest Cards Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {% for quest in quests %}
-            <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:scale-[1.02]
+            <div data-quest-id="{{ quest.id }}" class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:scale-[1.02]
                 {% if not quest.is_active %}opacity-60{% endif %}">
                 <!-- Card Header -->
                 <div class="p-4 bg-gradient-to-r relative z-20
@@ -69,6 +69,12 @@
                                 <i class="fas fa-calendar-check text-orange-400"></i>
                             {% elif quest.quest_type == 'manual' %}
                                 <i class="fas fa-hand-paper text-purple-400"></i>
+                            {% elif quest.quest_type == 'visit' %}
+                                {% if quest.platform_config and quest.platform_config.get('image') %}
+                                    <img src="{{ quest.platform_config.get('image') }}" alt="Site" class="w-8 h-8 rounded-full border" />
+                                {% else %}
+                                    <i class="fas fa-link text-green-400"></i>
+                                {% endif %}
                             {% else %}
                                 <i class="fas fa-link text-green-400"></i>
                             {% endif %}
@@ -302,9 +308,11 @@
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-gray-300 mb-2">Link/URL *</label>
-                        <input type="url" name="action_url" id="questUrl" required
-                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            placeholder="https://">
+                        <div class="flex gap-2">
+                            <input type="url" name="action_url" id="questUrl" required
+                                class="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="https://">
+                        </div>
                     </div>
 
                     <div class="md:col-span-2">
@@ -322,7 +330,8 @@
                         <label class="block text-sm font-semibold text-gray-300 mb-2">Quest Image (optional)</label>
                         <div class="flex gap-2 items-center">
                             <input type="url" name="image_url" id="questImageUrl" placeholder="https://example.com/image.jpg"
-                                class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                class="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <!-- Fetch Logo button removed: validation runs automatically on image URL change -->
                         </div>
                         <p class="text-xs text-gray-400 mt-2">Provide a direct image URL (no uploading). The URL will be used directly.</p>
                         <div id="imagePreviewContainer" class="mt-3" style="display:none;">
@@ -493,7 +502,7 @@
                 // Toggle verification code field depending on platform
                 toggleVerificationCodeField(quest.quest_type);
                 toggleTelegramTypeField(quest.quest_type);
-                // Show fetch button for edits (we have a quest id)
+                // Show fetch buttons for edits (we have a quest id)
                 const fetchBtn = document.getElementById('fetchTelegramImageBtn');
                 if (fetchBtn) fetchBtn.style.display = quest.quest_type === 'telegram' ? 'inline-block' : 'none';
                 openModal();
@@ -513,6 +522,7 @@
                     if (botField) botField.classList.add('hidden');
                     if (fetchBtn) fetchBtn.style.display = 'none';
                 }
+                // Note: website fetch button removed; image URL validation runs automatically
             }
 
             // Show/hide the verification code input only for YouTube platform
@@ -565,6 +575,12 @@
                 });
             }
 
+            // Fetch Logo button removed; URL input no longer controls its visibility
+            const urlInput = document.getElementById('questUrl');
+            if (urlInput) {
+                // Keep URL input for form; no extra UI actions required here
+            }
+
             // Handle fetch telegram image button
             const fetchImgBtn = document.getElementById('fetchTelegramImageBtn');
             if (fetchImgBtn) {
@@ -598,11 +614,65 @@
                 });
             }
 
+            // Fetch website button removed; logic moved to automatic validation and preview on image URL change.
+
             // Image preview for uploaded or URL images
             const imageFileInput = document.getElementById('questImageFile');
             const imageUrlInput = document.getElementById('questImageUrl');
             const previewImg = document.getElementById('imagePreview');
             const previewContainer = document.getElementById('imagePreviewContainer');
+
+            // Badge element for validation status
+            const badgeEl = document.getElementById('imageValidBadge');
+
+            // Validate image URL quickly via HEAD, fallback to loading the image
+            async function validateImageUrl(url, timeoutMs = 6000) {
+                if (!url) return false;
+                try {
+                    const controller = new AbortController();
+                    const id = setTimeout(() => controller.abort(), timeoutMs);
+                    // Try HEAD first
+                    const headResp = await fetch(url, { method: 'HEAD', signal: controller.signal });
+                    clearTimeout(id);
+                    if (headResp && headResp.ok) {
+                        const ctype = headResp.headers.get('content-type') || '';
+                        if (ctype.toLowerCase().startsWith('image/')) {
+                            return true;
+                        }
+                        // Not an image according to headers
+                        return false;
+                    }
+                } catch (e) {
+                    // HEAD may fail due to CORS or server not allowing HEAD - fall back to image load
+                }
+
+                // Fallback: try to load the image into an Image object (this will respect CORS for onload/onerror)
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    let settled = false;
+                    const t = setTimeout(() => {
+                        if (!settled) {
+                            settled = true;
+                            resolve(false);
+                        }
+                    }, timeoutMs);
+                    img.onload = function () {
+                        if (!settled) {
+                            settled = true;
+                            clearTimeout(t);
+                            resolve(true);
+                        }
+                    };
+                    img.onerror = function () {
+                        if (!settled) {
+                            settled = true;
+                            clearTimeout(t);
+                            resolve(false);
+                        }
+                    };
+                    img.src = url;
+                });
+            }
 
             if (imageFileInput) {
                 imageFileInput.addEventListener('change', function (e) {
@@ -612,16 +682,76 @@
                     if (previewImg) {
                         previewImg.src = url;
                         previewContainer.style.display = 'block';
+                        if (badgeEl) { badgeEl.className = 'hidden'; }
                     }
                 });
             }
 
             if (imageUrlInput) {
-                imageUrlInput.addEventListener('change', function (e) {
+                // Validate and preview on change
+                imageUrlInput.addEventListener('change', async function (e) {
                     const url = e.target.value.trim();
-                    if (url && previewImg) {
+                    if (!url) {
+                        if (previewImg) { previewImg.src = ''; previewContainer.style.display = 'none'; }
+                        if (badgeEl) { badgeEl.className = 'hidden'; }
+                        return;
+                    }
+                    if (previewImg) {
                         previewImg.src = url;
                         previewContainer.style.display = 'block';
+                    }
+                    // Quick validation
+                    const valid = await validateImageUrl(url);
+                    if (badgeEl) {
+                        if (valid) {
+                            badgeEl.className = 'absolute -bottom-2 right-0 px-2 py-1 rounded text-xs bg-green-600 text-white';
+                            badgeEl.textContent = 'OK';
+                            badgeEl.classList.remove('hidden');
+                        } else {
+                            badgeEl.className = 'absolute -bottom-2 right-0 px-2 py-1 rounded text-xs bg-red-600 text-white';
+                            badgeEl.textContent = 'Invalid';
+                            badgeEl.classList.remove('hidden');
+                        }
+                    }
+                    // If this is an existing (saved) quest, update the dashboard card in-place to reflect the new valid image
+                    const qidVal = (document.getElementById('questId') || {}).value || null;
+                    if (valid && qidVal) {
+                        try {
+                            const card = document.querySelector(`[data-quest-id="${qidVal}"]`);
+                            if (card) {
+                                // update header icon
+                                const headerIcon = card.querySelector('span.text-3xl');
+                                if (headerIcon) {
+                                    headerIcon.innerHTML = `<img src="${url}" alt="Site" class="w-8 h-8 rounded-full border" />`;
+                                }
+                                // update body preview if present
+                                const bodyPreview = card.querySelector('img.w-16');
+                                if (bodyPreview) bodyPreview.src = url;
+                                // remove any invalid badge overlay in the card body
+                                const invalidBadge = card.querySelector('span[title="Image appears invalid"]');
+                                if (invalidBadge) invalidBadge.remove();
+                            }
+                        } catch (e) {
+                            // ignore DOM update errors
+                        }
+                    }
+                });
+            }
+
+            // Also adjust badge based on actual image load outcomes to handle CORS fallbacks
+            if (previewImg) {
+                previewImg.addEventListener('load', function () {
+                    if (badgeEl && (badgeEl.className === 'hidden' || badgeEl.textContent === '')) {
+                        badgeEl.className = 'absolute -bottom-2 right-0 px-2 py-1 rounded text-xs bg-green-600 text-white';
+                        badgeEl.textContent = 'OK';
+                        badgeEl.classList.remove('hidden');
+                    }
+                });
+                previewImg.addEventListener('error', function () {
+                    if (badgeEl) {
+                        badgeEl.className = 'absolute -bottom-2 right-0 px-2 py-1 rounded text-xs bg-red-600 text-white';
+                        badgeEl.textContent = 'Invalid';
+                        badgeEl.classList.remove('hidden');
                     }
                 });
             }
