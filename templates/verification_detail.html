@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4 md:p-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-white mb-2">Submission Details</h1>
+            <p class="text-gray-400">Reviewing submission #{{ submission.id }}</p>
+        </div>
+        <a href="{{ url_for('admin.verification_queue') }}"
+            class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2">
+            ← Back to Queue
+        </a>
+    </div>
+
+    <div id="submissionContainer" data-submission-id="{{ submission.id }}" class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl p-8">
+        <!-- Content similar to the card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+             <!-- User Info -->
+             <div class="space-y-4">
+                <h3 class="text-lg font-bold text-cyber-gold uppercase tracking-wider border-b border-white/10 pb-2">User Profile</h3>
+                <div class="flex items-center gap-4">
+                    {% if user.photo_url %}
+                    <img src="{{ user.photo_url }}" alt="{{ user.username }}" class="w-16 h-16 rounded-full border-2 border-white/10">
+                    {% else %}
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold text-2xl border-2 border-white/10">
+                        {{ user.first_name[0] if user.first_name else 'U' }}
+                    </div>
+                    {% endif %}
+                    <div>
+                        <p class="text-xl text-white font-bold">{{ user.first_name or 'Unknown' }}</p>
+                        <p class="text-gray-400">@{{ user.username or user.telegram_id }}</p>
+                        <div class="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-400/10 text-yellow-400">
+                            {{ user.points }} Points
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quest Info -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-bold text-cyber-gold uppercase tracking-wider border-b border-white/10 pb-2">Quest Details</h3>
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-2xl">
+                            {% if quest.quest_type == 'telegram' %}✈️
+                            {% elif quest.quest_type == 'twitter' %}🐦
+                            {% elif quest.quest_type == 'youtube' %}▶️
+                            {% elif quest.quest_type == 'manual' %}📝
+                            {% else %}🔗{% endif %}
+                        </span>
+                        <h4 class="text-xl font-bold text-white">{{ quest.title }}</h4>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-3">{{ quest.description }}</p>
+                    <div class="flex gap-2">
+                        <span class="px-3 py-1 rounded-lg bg-white/5 text-sm text-gray-300 border border-white/10">
+                            Type: {{ quest.quest_type|title }}
+                        </span>
+                        <span class="px-3 py-1 rounded-lg bg-yellow-400/10 text-sm text-yellow-400 border border-yellow-400/20">
+                            Reward: {{ quest.points }} XP
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submission Evidence -->
+        <div class="mb-8">
+            <h3 class="text-lg font-bold text-cyber-gold uppercase tracking-wider border-b border-white/10 pb-2 mb-4">Proof of Work</h3>
+            <div class="bg-black/30 rounded-xl p-6 border border-white/5">
+                {% if submission.submission_link %}
+                <div class="mb-4">
+                    <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">Submitted Link</label>
+                    <div class="flex items-center gap-3 bg-white/5 p-3 rounded-lg">
+                        <i class="fas fa-link text-blue-400"></i>
+                        <a href="{{ submission.submission_link }}" target="_blank" class="text-blue-400 hover:text-blue-300 break-all font-mono">
+                            {{ submission.submission_link }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if submission.submission_text %}
+                <div class="mb-4">
+                    <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2">Notes</label>
+                    <div class="bg-white/5 p-4 rounded-lg text-gray-300 italic">
+                        "{{ submission.submission_text }}"
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="text-right text-xs text-gray-500 mt-2">
+                    Submitted on {{ submission.submitted_at.strftime('%Y-%m-%d at %H:%M') }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-4 pt-6 border-t border-white/10">
+            <button id="approveBtn"
+                class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-green-900/20 transition-all transform hover:scale-[1.02]">
+                <i class="fas fa-check mr-2"></i> Approve & Award
+            </button>
+            <button id="rejectBtn"
+                class="flex-1 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-red-900/20 transition-all transform hover:scale-[1.02]">
+                <i class="fas fa-times mr-2"></i> Reject
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+        <h3 class="text-xl font-bold text-white mb-4">Reject Submission</h3>
+        <p class="text-gray-400 mb-4">Select one or more reasons for rejection. These will be shown to the user. You can also add an optional custom note below.</p>
+
+        <div class="grid grid-cols-1 gap-2 mb-4">
+            <label class="inline-flex items-center gap-3 text-sm text-gray-200">
+                <input type="checkbox" class="reject-reason-checkbox" value="Link is broken or inaccessible">
+                <span>Link is broken or inaccessible</span>
+            </label>
+            <label class="inline-flex items-center gap-3 text-sm text-gray-200">
+                <input type="checkbox" class="reject-reason-checkbox" value="Proof does not match the requirements">
+                <span>Proof does not match the requirements</span>
+            </label>
+            <label class="inline-flex items-center gap-3 text-sm text-gray-200">
+                <input type="checkbox" class="reject-reason-checkbox" value="Submitted content is private or not publicly viewable">
+                <span>Submitted content is private or not publicly viewable</span>
+            </label>
+            <label class="inline-flex items-center gap-3 text-sm text-gray-200">
+                <input type="checkbox" class="reject-reason-checkbox" value="Wrong account used for submission">
+                <span>Wrong account used for submission</span>
+            </label>
+            <label class="inline-flex items-center gap-3 text-sm text-gray-200">
+                <input type="checkbox" class="reject-reason-checkbox" value="Spam or unrelated content">
+                <span>Spam or unrelated content</span>
+            </label>
+        </div>
+
+        <textarea id="rejectReason" rows="3" 
+            class="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 mb-4"
+            placeholder="Optional: Add any custom notes for the user (e.g., what to fix)..."></textarea>
+
+        <div class="flex gap-3">
+            <button onclick="closeRejectModal()" 
+                class="flex-1 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition-colors">
+                Cancel
+            </button>
+            <button onclick="confirmReject()" 
+                class="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold transition-colors">
+                Reject Submission
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSubmissionId = null;
+
+    // initialize currentSubmissionId from container dataset to avoid inline Jinja in JS
+    const _container = document.getElementById('submissionContainer');
+    if (_container && _container.dataset && _container.dataset.submissionId) {
+        currentSubmissionId = _container.dataset.submissionId;
+    }
+
+    function approveSubmission(submissionId) {
+        if (confirm('Approve this submission and award points to the user?')) {
+            fetch(`/admin/verify/approve/${submissionId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = "{{ url_for('admin.verification_queue') }}";
+                    } else {
+                        alert('Error approving submission');
+                    }
+                })
+                .catch(err => alert('Error: ' + err));
+        }
+    }
+
+    function openRejectModal(submissionId) {
+        if (submissionId) currentSubmissionId = submissionId;
+        document.getElementById('rejectModal').classList.remove('hidden');
+    }
+
+    // attach button listeners to avoid inline onclick with Jinja
+    const approveBtnEl = document.getElementById('approveBtn');
+    if (approveBtnEl) {
+        approveBtnEl.addEventListener('click', () => {
+            approveSubmission(currentSubmissionId);
+        });
+    }
+    const rejectBtnEl = document.getElementById('rejectBtn');
+    if (rejectBtnEl) {
+        rejectBtnEl.addEventListener('click', () => {
+            openRejectModal();
+        });
+    }
+
+    function closeRejectModal() {
+        document.getElementById('rejectModal').classList.add('hidden');
+        currentSubmissionId = null;
+    }
+
+    function confirmReject() {
+        if (!currentSubmissionId) return;
+        // collect checked reasons
+        const checkboxes = document.querySelectorAll('.reject-reason-checkbox');
+        const selected = [];
+        checkboxes.forEach(cb => { if (cb.checked) selected.push(cb.value); });
+
+        const freeText = (document.getElementById('rejectReason').value || '').trim();
+
+        if (selected.length === 0 && !freeText) {
+            alert('Please select at least one reason or enter a custom note');
+            return;
+        }
+
+        let combined = selected.join('; ');
+        if (freeText) {
+            if (combined) combined += '; ' + freeText; else combined = freeText;
+        }
+
+        const formData = new FormData();
+        formData.append('reason', combined);
+
+        fetch(`/admin/verify/reject/${currentSubmissionId}`, { 
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = "{{ url_for('admin.verification_queue') }}";
+            } else {
+                alert('Error rejecting submission');
+            }
+        })
+        .catch(err => alert('Error: ' + err));
+    }
+</script>
+{% endblock %}

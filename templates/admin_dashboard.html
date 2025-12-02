@@ -266,6 +266,16 @@
                         </select>
                     </div>
 
+                    <div id="twitterFields" class="md:col-span-2 hidden">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Twitter Proof Instructions</label>
+                        <textarea name="twitter_instruction" id="twitterInstruction" rows="2"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            placeholder="Tell users what players should tweet or any extra guidance."></textarea>
+                        <p class="text-xs text-gray-400 mt-2">
+                            Players will post from their own accounts and submit the tweet URL for manual review.
+                        </p>
+                    </div>
+
                     <div id="telegramBotVerifyField" class="md:col-span-2 hidden">
                         <label class="block text-sm font-semibold text-gray-300 mb-2">Telegram Verification</label>
                         <input type="hidden" name="telegram_bot_verify" value="0">
@@ -407,6 +417,8 @@
                 questForm.action = urls.add_quest;
                 questIdInput.value = '';
                 questForm.reset();
+                const twitterInstructionField = document.getElementById('twitterInstruction');
+                if (twitterInstructionField) twitterInstructionField.value = '';
                 const botCheckbox = document.getElementById('telegramBotVerify');
                 if (botCheckbox) {
                     botCheckbox.checked = true;
@@ -439,6 +451,11 @@
                 const platformTypeEl = document.getElementById('platformType');
                 if (platformTypeEl && quest.platform_config && quest.platform_config.platform_type) {
                     platformTypeEl.value = quest.platform_config.platform_type;
+                }
+                const twitterInstructionField = document.getElementById('twitterInstruction');
+                if (twitterInstructionField) {
+                    const instruction = quest.platform_config && quest.platform_config.twitter_instruction ? quest.platform_config.twitter_instruction : '';
+                    twitterInstructionField.value = instruction;
                 }
                 const botCheckbox = document.getElementById('telegramBotVerify');
                 if (botCheckbox) {
@@ -516,6 +533,7 @@
                 const wrapper = document.getElementById('telegramTypeField');
                 const fetchBtn = document.getElementById('fetchTelegramImageBtn');
                 const botField = document.getElementById('telegramBotVerifyField');
+                const twitterFields = document.getElementById('twitterFields');
                 if (!wrapper) return;
                 if (selectedPlatform && selectedPlatform.toLowerCase() === 'telegram') {
                     wrapper.style.display = '';
@@ -525,6 +543,15 @@
                     wrapper.style.display = 'none';
                     if (botField) botField.classList.add('hidden');
                     if (fetchBtn) fetchBtn.style.display = 'none';
+                }
+                if (twitterFields) {
+                    if (selectedPlatform && selectedPlatform.toLowerCase() === 'twitter') {
+                        twitterFields.classList.remove('hidden');
+                    } else {
+                        twitterFields.classList.add('hidden');
+                        const instr = document.getElementById('twitterInstruction');
+                        if (!document.getElementById('questId').value && instr) instr.value = '';
+                    }
                 }
                 // Note: website fetch button removed; image URL validation runs automatically
             }

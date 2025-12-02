@@ -104,7 +104,7 @@
                     <i class="fas fa-check mr-1"></i> Done
                 </div>
             </div>
-            {% elif quest.quest_type == 'manual' and submission and (manual_status == 'rejected' or manual_verification == 'rejected') %}
+            {% elif quest.quest_type in ['manual', 'twitter'] and submission and (manual_status == 'rejected' or manual_verification == 'rejected') %}
             <div class="text-left max-w-xs">
                 <div
                     class="bg-red-500/10 border border-red-500/40 text-red-300 px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider text-center">
@@ -116,7 +116,7 @@
                     <i class="fas fa-check mr-1"></i>Acknowledge
                 </button>
             </div>
-            {% elif quest.quest_type == 'manual' and submission and manual_status == 'submitted' %}
+            {% elif quest.quest_type in ['manual', 'twitter'] and submission and manual_status == 'submitted' %}
             <div class="text-center">
                 <div
                     class="bg-blue-500/10 border border-blue-500/30 text-blue-300 px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider">
@@ -228,6 +228,50 @@
               btn.disabled = false;
               btn.classList.remove('opacity-75', 'cursor-not-allowed');
           });
+    }
+
+    function submitTwitterProof(questId, buttonRef) {
+        const container = buttonRef.closest('[data-twitter-manual]');
+        if (!container) {
+            showModal('Error', 'Unable to locate the proof form.');
+            return;
+        }
+
+        const urlInput = container.querySelector('input[name="tweet_url"]');
+        const tweetUrl = urlInput ? urlInput.value.trim() : '';
+        if (!tweetUrl) {
+            showModal('Error', 'Paste your tweet URL before submitting.');
+            return;
+        }
+
+        const btn = buttonRef;
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+        btn.innerHTML = '<span class="relative z-10"><i class="fas fa-spinner fa-spin mr-2"></i>Sending...</span>';
+
+        fetch(`/quests/twitter/manual-submit/${questId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tweet_url: tweetUrl })
+        })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok || data.status !== 'success') {
+                    throw new Error(data.error || 'Unable to submit tweet proof.');
+                }
+                showModal('Proof Submitted', data.message || 'Thanks! We will review your tweet shortly.', () => {
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                showModal('Error', error.message || 'Unable to submit tweet proof.');
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                btn.innerHTML = original;
+            });
     }
 </script>
 {% endblock %}

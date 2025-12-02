@@ -16,92 +16,63 @@
 
     <!-- Submissions List -->
     {% if submissions %}
-    <div class="space-y-4">
-        {% for submission, user, quest in submissions %}
-        <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-300"
-            id="submission-{{ submission.id }}">
-            <div class="p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- User Info -->
-                    <div class="space-y-2">
-                        <h3 class="text-sm font-semibold text-gray-400 uppercase">User</h3>
-                        <div class="flex items-center gap-3">
-                            {% if user.photo_url %}
-                            <img src="{{ user.photo_url }}" alt="{{ user.username }}" class="w-12 h-12 rounded-full">
-                            {% else %}
-                            <div
-                                class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold text-xl">
-                                {{ user.first_name[0] if user.first_name else 'U' }}
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-white/5 border-b border-white/10 text-gray-400 text-sm uppercase tracking-wider">
+                        <th class="p-4 font-semibold">User</th>
+                        <th class="p-4 font-semibold">Quest</th>
+                        <th class="p-4 font-semibold">Type</th>
+                        <th class="p-4 font-semibold">Submitted</th>
+                        <th class="p-4 font-semibold text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for submission, user, quest in submissions %}
+                    <tr class="hover:bg-white/5 transition-colors cursor-pointer group" onclick="window.location.href='{{ url_for('admin.verification_detail', submission_id=submission.id) }}'">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                {% if user.photo_url %}
+                                <img src="{{ user.photo_url }}" alt="{{ user.username }}" class="w-10 h-10 rounded-full">
+                                {% else %}
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                                    {{ user.first_name[0] if user.first_name else 'U' }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <p class="text-white font-semibold group-hover:text-cyber-gold transition-colors">{{ user.first_name or 'Unknown' }}</p>
+                                    <p class="text-gray-500 text-xs">@{{ user.username or user.telegram_id }}</p>
+                                </div>
                             </div>
-                            {% endif %}
-                            <div>
-                                <p class="text-white font-semibold">{{ user.first_name or 'Unknown' }}</p>
-                                <p class="text-gray-400 text-sm">@{{ user.username or user.telegram_id }}</p>
-                            </div>
-                        </div>
-                        <div class="text-sm text-gray-400">
-                            <p>Points: <span class="text-yellow-400 font-bold">{{ user.points }}</span></p>
-                        </div>
-                    </div>
-
-                    <!-- Quest Info -->
-                    <div class="space-y-2">
-                        <h3 class="text-sm font-semibold text-gray-400 uppercase">Quest</h3>
-                        <div class="flex items-start gap-2">
-                            <span class="text-2xl">
-                                {% if quest.quest_type == 'telegram' %}✈️
-                                {% elif quest.quest_type == 'twitter' %}🐦
-                                {% elif quest.quest_type == 'youtube' %}▶️
-                                {% elif quest.quest_type == 'manual' %}📝
-                                {% else %}🔗{% endif %}
+                        </td>
+                        <td class="p-4">
+                            <p class="text-white font-medium">{{ quest.title }}</p>
+                            <p class="text-yellow-400 text-xs font-bold">{{ quest.points }} XP</p>
+                        </td>
+                        <td class="p-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 text-gray-300 border border-white/10">
+                                {% if quest.quest_type == 'telegram' %}Telegram
+                                {% elif quest.quest_type == 'twitter' %}Twitter
+                                {% elif quest.quest_type == 'youtube' %}YouTube
+                                {% elif quest.quest_type == 'manual' %}Manual
+                                {% else %}Link{% endif %}
                             </span>
-                            <div>
-                                <p class="text-white font-semibold">{{ quest.title }}</p>
-                                <p class="text-gray-400 text-sm">{{ quest.description }}</p>
-                                <p class="text-yellow-400 font-bold mt-1">💰 {{ quest.points }} points</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Submission Data -->
-                    <div class="space-y-2">
-                        <h3 class="text-sm font-semibold text-gray-400 uppercase">Submission</h3>
-                        {% if submission.submission_link %}
-                        <div class="mb-2">
-                            <p class="text-xs text-gray-500 mb-1">Link:</p>
-                            <a href="{{ submission.submission_link }}" target="_blank"
-                                class="text-blue-400 hover:text-blue-300 text-sm break-all">
-                                {{ submission.submission_link }}
+                        </td>
+                        <td class="p-4 text-gray-400 text-sm">
+                            {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') if submission.submitted_at else 'N/A' }}
+                        </td>
+                        <td class="p-4 text-right">
+                            <a href="{{ url_for('admin.verification_detail', submission_id=submission.id) }}" 
+                               class="text-cyber-gold hover:text-yellow-300 font-semibold text-sm uppercase tracking-wider">
+                                Review →
                             </a>
-                        </div>
-                        {% endif %}
-                        {% if submission.submission_text %}
-                        <div>
-                            <p class="text-xs text-gray-500 mb-1">Text:</p>
-                            <p class="text-white text-sm bg-white/5 p-3 rounded-lg">{{ submission.submission_text }}</p>
-                        </div>
-                        {% endif %}
-                        <p class="text-xs text-gray-500 mt-2">
-                            Submitted: {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') if submission.submitted_at
-                            else 'N/A' }}
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex gap-3 mt-6 pt-6 border-t border-white/10">
-                    <button onclick="approveSubmission({{ submission.id }})"
-                        class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105">
-                        ✓ Approve
-                    </button>
-                    <button onclick="rejectSubmission({{ submission.id }})"
-                        class="flex-1 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105">
-                        ✗ Reject
-                    </button>
-                </div>
-            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% endfor %}
     </div>
     {% else %}
     <div class="text-center py-16">
@@ -113,56 +84,6 @@
 </div>
 
 <script>
-    function approveSubmission(submissionId) {
-        if (confirm('Approve this submission and award points to the user?')) {
-            fetch(`/admin/verify/approve/${submissionId}`, { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Remove the submission card with animation
-                        const card = document.getElementById(`submission-${submissionId}`);
-                        card.style.opacity = '0';
-                        card.style.transform = 'scale(0.95)';
-                        setTimeout(() => {
-                            card.remove();
-                            // Check if no more submissions
-                            if (document.querySelectorAll('[id^="submission-"]').length === 0) {
-                                location.reload();
-                            }
-                        }, 300);
-                        showModal('✅ Submission approved! Points awarded to user.');
-                    } else {
-                        showModal('❌ Error approving submission');
-                    }
-                })
-                .catch(err => showModal('❌ Error: ' + err));
-        }
-    }
-
-    function rejectSubmission(submissionId) {
-        if (confirm('Reject this submission? The user will not receive points.')) {
-            fetch(`/admin/verify/reject/${submissionId}`, { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Remove the submission card with animation
-                        const card = document.getElementById(`submission-${submissionId}`);
-                        card.style.opacity = '0';
-                        card.style.transform = 'scale(0.95)';
-                        setTimeout(() => {
-                            card.remove();
-                            // Check if no more submissions
-                            if (document.querySelectorAll('[id^="submission-"]').length === 0) {
-                                location.reload();
-                            }
-                        }, 300);
-                        showModal('Submission rejected');
-                    } else {
-                        showModal('❌ Error rejecting submission');
-                    }
-                })
-                .catch(err => showModal('❌ Error: ' + err));
-        }
-    }
+    // Functions moved to detail page
 </script>
 {% endblock %}

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
-from models import db, Quest, SystemSetting, UserQuest, User, Reward, UserReward
+from models import db, Quest, SystemSetting, UserQuest, User, Reward, UserReward, DailyCheckIn
 import os
 import hashlib
 import requests
@@ -180,6 +180,15 @@ def add_quest():
             platform_config['image_valid'] = False
             current_app.logger.exception('Error validating image URL: %s', img)
 
+    if platform == 'twitter':
+        if platform_config is None:
+            platform_config = {}
+        instruction = (request.form.get('twitter_instruction') or '').strip()
+        if instruction:
+            platform_config['twitter_instruction'] = instruction
+        else:
+            platform_config.pop('twitter_instruction', None)
+
     quest = Quest(
         title=title,
         description=description,
@@ -230,6 +239,18 @@ def edit_quest(quest_id):
         current_config['telegram_bot_verify'] = use_bot_verification
     elif quest.platform_config:
         current_config.pop('telegram_bot_verify', None)
+    if quest.quest_type == 'twitter':
+        instruction = (request.form.get('twitter_instruction') or '').strip()
+        if instruction:
+            current_config['twitter_instruction'] = instruction
+        else:
+            current_config.pop('twitter_instruction', None)
+        current_config.pop('twitter_template', None)
+        current_config.pop('twitter_manual_mode', None)
+    else:
+        current_config.pop('twitter_instruction', None)
+        current_config.pop('twitter_template', None)
+        current_config.pop('twitter_manual_mode', None)
     # If saving a telegram quest and no platform_type provided, default to 'channel'
     if quest.quest_type == 'telegram' and not current_config.get('platform_type'):
         current_config['platform_type'] = 'channel'
@@ -505,9 +526,19 @@ def fetch_telegram_image_telethon(quest_id):
 @admin_bp.route('/quest/delete/<int:quest_id>', methods=['POST'])
 def delete_quest(quest_id):
     quest = Quest.query.get_or_404(quest_id)
-    db.session.delete(quest)
-    db.session.commit()
-    return jsonify({'status': 'success'})
+
+    try:
+        # Remove related submissions/check-ins to avoid foreign key constraints.
+        UserQuest.query.filter_by(quest_id=quest.id).delete(synchronize_session=False)
+        DailyCheckIn.query.filter_by(quest_id=quest.id).delete(synchronize_session=False)
+
+        db.session.delete(quest)
+        db.session.commit()
+        return jsonify({'status': 'success'})
+    except Exception as exc:
+        current_app.logger.exception('Failed to delete quest %s', quest_id)
+        db.session.rollback()
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
 @admin_bp.route('/fetch_site_meta', methods=['POST'])
@@ -610,6 +641,13 @@ def verification_queue():
     
     return render_template('verification_queue.html', submissions=pending_submissions)
 
+@admin_bp.route('/verification-queue/<int:submission_id>')
+def verification_detail(submission_id):
+    submission = UserQuest.query.get_or_404(submission_id)
+    user = User.query.get(submission.user_id)
+    quest = Quest.query.get(submission.quest_id)
+    return render_template('verification_detail.html', submission=submission, user=user, quest=quest)
+
 @admin_bp.route('/verify/approve/<int:submission_id>', methods=['POST'])
 def approve_submission(submission_id):
     submission = UserQuest.query.get_or_404(submission_id)
@@ -636,6 +674,11 @@ def reject_submission(submission_id):
     # Update submission status
     submission.status = 'rejected'
     submission.reviewed_at = datetime.utcnow()
+    
+    # Save rejection reason if provided
+    reason = request.form.get('reason')
+    if reason:
+        submission.admin_notes = reason
     
     db.session.commit()
     

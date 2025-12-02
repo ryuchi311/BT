@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for
+from flask import Blueprint, render_template, jsonify, request, session, redirect, url_for, current_app
 from models import db, Quest, UserQuest, User, DailyCheckIn
 from datetime import datetime, date, timedelta
 import os
 import requests
+from urllib.parse import urlparse
 
 quests_bp = Blueprint('quests', __name__)
 
@@ -80,6 +81,8 @@ def verify_quest(quest_id):
         return redirect(url_for('main.index'))
     
     quest = Quest.query.get_or_404(quest_id)
+    # if quest.quest_type == 'twitter':
+    #     return redirect(url_for('quests.list_quests'))
     user = User.query.get(user_id)
     
     # Check if already completed
@@ -165,8 +168,10 @@ def complete_quest(quest_id):
     quest = Quest.query.get_or_404(quest_id)
     if quest.quest_type == 'manual':
         return jsonify({'error': 'Manual quests require proof submission for review'}), 400
+    if quest.quest_type == 'twitter':
+        return jsonify({'error': 'Twitter quests require you to submit your tweet link for review.'}), 400
     user = User.query.get(user_id)
-    
+
     # Here we would add specific verification logic based on quest.quest_type
     # For prototype, we assume instant completion
     
@@ -183,6 +188,64 @@ def complete_quest(quest_id):
     db.session.commit()
     
     return jsonify({'status': 'success', 'new_points': user.points})
+
+
+@quests_bp.route('/twitter/manual-submit/<int:quest_id>', methods=['POST'])
+def submit_twitter_manual_proof(quest_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    quest = Quest.query.get_or_404(quest_id)
+    if quest.quest_type != 'twitter':
+        return jsonify({'error': 'Manual submission is not enabled for this quest.'}), 400
+
+    data = request.get_json(silent=True) or {}
+    tweet_url = (data.get('tweet_url') or '').strip()
+    notes = (data.get('notes') or '').strip()
+
+    if not tweet_url:
+        return jsonify({'error': 'Paste the tweet URL so we can review it.'}), 400
+
+    parsed = urlparse(tweet_url)
+    if parsed.scheme not in ('http', 'https') or not parsed.netloc:
+        return jsonify({'error': 'Enter a valid tweet URL starting with http or https.'}), 400
+
+    domain = parsed.netloc.lower()
+    if not any(keyword in domain for keyword in ('twitter.com', 'x.com')):
+        return jsonify({'error': 'The link should point to twitter.com or x.com.'}), 400
+
+    submission = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id).order_by(UserQuest.id.desc()).first()
+
+    if submission and submission.status == 'submitted' and submission.verification_status in (None, 'pending'):
+        return jsonify({'error': 'Your tweet is already waiting for review. Hang tight!'}), 400
+
+    if not submission:
+        submission = UserQuest(user_id=user_id, quest_id=quest_id)
+        db.session.add(submission)
+
+    submission.status = 'submitted'
+    submission.verification_status = 'pending'
+    submission.submission_link = tweet_url
+    submission.submission_text = notes or None
+    submission.proof_data = {
+        'tweet_url': tweet_url,
+        'submission_type': 'manual',
+        'submitted_text': notes or None,
+        'domain': domain
+    }
+    submission.submitted_at = datetime.utcnow()
+    submission.completed_at = None
+    submission.admin_notes = None
+
+    db.session.commit()
+
+    helper = quest.platform_config.get('twitter_instruction') if isinstance(quest.platform_config, dict) else None
+    message = 'Tweet submitted! Our team will review it shortly.'
+    if helper:
+        message += ' Follow any additional instructions above while you wait.'
+
+    return jsonify({'status': 'success', 'message': message, 'tweet_url': tweet_url})
 
 @quests_bp.route('/manual-submit/<int:quest_id>', methods=['POST'])
 def submit_manual_quest(quest_id):
@@ -236,7 +299,7 @@ def acknowledge_manual_rejection(quest_id):
         return jsonify({'error': 'Unauthorized'}), 401
 
     quest = Quest.query.get_or_404(quest_id)
-    if quest.quest_type != 'manual':
+    if quest.quest_type not in ['manual', 'twitter']:
         return jsonify({'error': 'Invalid quest type'}), 400
 
     submission = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id).order_by(UserQuest.id.desc()).first()
