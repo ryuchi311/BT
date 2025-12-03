@@ -1,0 +1,17 @@
+<div style="background:linear-gradient(90deg,#0f1724,#0b1220); color:#fff; padding:12px 20px; border-bottom:1px solid rgba(255,255,255,0.04);">
+  <div style="max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="{{ url_for('admin.dashboard') }}" style="color:#fff; text-decoration:none; font-weight:700; font-size:18px;">Quest Management</a>
+      <nav style="display:flex; gap:8px; align-items:center;">
+        <a href="{{ url_for('admin.dashboard') }}" style="color:rgba(255,255,255,0.85); text-decoration:none; font-size:14px;">Dashboard</a>
+        <a href="{{ url_for('admin.list_admin_users') }}" style="color:rgba(255,255,255,0.85); text-decoration:none; font-size:14px;">Admins</a>
+        <a href="{{ url_for('admin.manage_rewards') }}" style="color:rgba(255,255,255,0.85); text-decoration:none; font-size:14px;">Rewards</a>
+        <a href="{{ url_for('admin.verification_queue') }}" style="color:rgba(255,255,255,0.85); text-decoration:none; font-size:14px;">Queue</a>
+      </nav>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a href="/" target="_blank" style="color:rgba(255,255,255,0.8); text-decoration:none; font-size:13px;">Open Site</a>
+      <a href="{{ url_for('admin.logout') }}" style="background:#111827; color:#fff; padding:6px 10px; border-radius:6px; text-decoration:none; font-size:13px;">Logout</a>
+    </div>
+  </div>
+</div>

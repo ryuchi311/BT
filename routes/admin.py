@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
-from models import db, Quest, SystemSetting, UserQuest, User, Reward, UserReward, DailyCheckIn
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
+from models import db, Quest, SystemSetting, UserQuest, User, Reward, UserReward, DailyCheckIn, AdminUser
 import os
 import hashlib
 import requests
@@ -20,6 +20,37 @@ except Exception:
     TELETHON_AVAILABLE = False
 
 admin_bp = Blueprint('admin', __name__)
+
+
+# Simple admin auth helpers using SystemSetting to store credentials
+def _get_setting(key):
+    s = SystemSetting.query.get(key)
+    return s.value if s else None
+
+
+def _set_setting(key, value):
+    s = SystemSetting.query.get(key)
+    if not s:
+        s = SystemSetting(key=key, value=value)
+        db.session.add(s)
+    else:
+        s.value = value
+    db.session.commit()
+
+
+@admin_bp.before_app_request
+def _require_admin_login():
+    # Only enforce for admin blueprint endpoints
+    if not request.endpoint:
+        return
+    if request.blueprint != 'admin':
+        return
+    # Allow login/logout and a few public endpoints
+    public = {'admin.login', 'admin.logout', 'admin.fetch_site_meta'}
+    if request.endpoint in public:
+        return
+    if not session.get('is_admin'):
+        return redirect(url_for('admin.login'))
 
 
 def _detect_telegram_chat(chat_id, timeout=8):
@@ -104,6 +135,94 @@ def dashboard():
     quests = Quest.query.order_by(Quest.id.desc()).all()
     quests_data = [q.to_dict() for q in quests]
     return render_template('admin_dashboard.html', quests=quests, quests_data=quests_data)
+
+
+@admin_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        # Prefer AdminUser table; fallback to SystemSetting if no admin users exist
+        from werkzeug.security import check_password_hash
+        admin = AdminUser.query.filter_by(username=username).first()
+        if admin:
+            if check_password_hash(admin.password_hash, password):
+                session['is_admin'] = True
+                session['admin_id'] = admin.id
+                session.permanent = True
+                return redirect(url_for('admin.dashboard'))
+            else:
+                error = 'Invalid username or password'
+        else:
+            # Fallback to legacy SystemSetting-based single superadmin
+            stored_user = _get_setting('superadmin.username')
+            stored_hash = _get_setting('superadmin.password_hash')
+            if not stored_user or not stored_hash:
+                error = 'No admin credentials configured. Create them with scripts/create_temp_superadmin.py'
+            else:
+                if username == stored_user and check_password_hash(stored_hash, password):
+                    session['is_admin'] = True
+                    session.permanent = True
+                    return redirect(url_for('admin.dashboard'))
+                else:
+                    error = 'Invalid username or password'
+    return render_template('admin_login.html', error=error)
+
+
+@admin_bp.route('/logout')
+def logout():
+    session.pop('is_admin', None)
+    return redirect(url_for('admin.login'))
+
+
+@admin_bp.route('/users')
+def list_admin_users():
+    users = AdminUser.query.order_by(AdminUser.id.asc()).all()
+    return render_template('admin_users.html', users=users)
+
+
+@admin_bp.route('/users/add', methods=['POST'])
+def add_admin_user():
+    from werkzeug.security import generate_password_hash
+    username = request.form.get('username')
+    password = request.form.get('password')
+    email = request.form.get('email')
+    is_super = True if request.form.get('is_super') in ('1', 'on', 'true') else False
+    if not username or not password:
+        return jsonify({'success': False, 'error': 'username and password required'}), 400
+    if AdminUser.query.filter_by(username=username).first():
+        return jsonify({'success': False, 'error': 'username already exists'}), 400
+    user = AdminUser(username=username, password_hash=generate_password_hash(password), email=email, is_superadmin=is_super)
+    db.session.add(user)
+    db.session.commit()
+    return redirect(url_for('admin.list_admin_users'))
+
+
+@admin_bp.route('/users/edit/<int:user_id>', methods=['POST'])
+def edit_admin_user(user_id):
+    from werkzeug.security import generate_password_hash
+    user = AdminUser.query.get_or_404(user_id)
+    username = request.form.get('username')
+    password = request.form.get('password')
+    email = request.form.get('email')
+    is_super = True if request.form.get('is_super') in ('1', 'on', 'true') else False
+    if username:
+        user.username = username
+    if password:
+        user.password_hash = generate_password_hash(password)
+    user.email = email
+    user.is_superadmin = is_super
+    db.session.commit()
+    return redirect(url_for('admin.list_admin_users'))
+
+
+@admin_bp.route('/users/delete/<int:user_id>', methods=['POST'])
+def delete_admin_user(user_id):
+    user = AdminUser.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'success': True})
 
 @admin_bp.route('/quest/add', methods=['POST'])
 def add_quest():
