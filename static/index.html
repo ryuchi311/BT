@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>BT Quest Hub</title>
+    <style>
+      body{background:#0b0f14;color:#c7f3ff;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;display:flex;align-items:center;justify-content:center;height:100vh}
+      .card{max-width:720px;padding:32px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));box-shadow:0 10px 30px rgba(2,6,23,0.6);border:1px solid rgba(100,220,255,0.06)}
+      h1{margin:0 0 8px;font-size:28px;color:#8ef0ff}
+      p{margin:6px 0 16px;color:#9fe9ff}
+      a.btn{display:inline-block;padding:10px 16px;background:#00d4ff;color:#00202a;border-radius:8px;text-decoration:none;font-weight:600}
+      ul{margin:8px 0 0;padding-left:18px}
+      small{color:#7fbccf}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>BT Quest Hub</h1>
+      <p>Welcome — this site hosts the Quest Hub (backend). For security and reliability, the Quest Hub runs as a Python service. To access the quests, connect via the official Telegram bot.</p>
+      <p><strong>How to connect</strong></p>
+      <ol>
+        <li>Open Telegram and search for <code>@YourQuestBot</code></li>
+        <li>Start the bot and follow the onboarding instructions</li>
+        <li>Once linked, visit the Quest Hub from the bot or use the provided link</li>
+      </ol>
+      <p>If you're the site owner and want the full web experience, deploy the backend to Render/Railway/Heroku (Procfile is included). After deployment, enable the API proxy in the Netlify settings or update <code>netlify.toml</code>.</p>
+      <p><a class="btn" href="https://t.me/YourQuestBot" target="_blank" rel="noopener">Open Telegram Bot</a></p>
+      <small>Note: This is a static landing page served by Netlify while the backend runs on a WSGI host.</small>
+    </div>
+  </body>
+</html>

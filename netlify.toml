@@ -1,0 +1,18 @@
+[build]
+  publish = "static"
+  command = ""
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
+
+# When your Flask backend is deployed elsewhere (Render/Railway/Heroku),
+# uncomment and update the proxy rule below to forward API requests.
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://your-backend.example.com/:splat"
+#   status = 200
+#   force = false
+#   headers = { Host = "your-backend.example.com" }
