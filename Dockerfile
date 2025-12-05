@@ -9,10 +9,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_APP=app.py
 
-# Install system dependencies
+# Install system dependencies (add libpq headers and build tools for psycopg2)
 RUN apt-get update && apt-get install -y \
     gcc \
+    libpq-dev \
+    build-essential \
     postgresql-client \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file
