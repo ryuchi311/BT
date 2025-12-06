@@ -17,7 +17,7 @@ myenv/
 
 # Flask
 instance/
-.env
+#.env
 *.db
 *.sqlite
 
