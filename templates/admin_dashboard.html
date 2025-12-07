@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Quest Hub</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -24,7 +24,8 @@
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen p-4 md:p-8 pb-24">
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen p-4 md:p-8 pb-24"
+    style="padding-bottom: 90px;">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
@@ -52,17 +53,17 @@
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-3xl">
                             {% if quest.quest_type == 'telegram' %}
-                                <i class="fab fa-telegram text-blue-400"></i>
+                            <i class="fab fa-telegram text-blue-400"></i>
                             {% elif quest.quest_type == 'twitter' %}
-                                <i class="fab fa-twitter text-sky-400"></i>
+                            <i class="fab fa-twitter text-sky-400"></i>
                             {% elif quest.quest_type == 'youtube' %}
-                                <i class="fab fa-youtube text-red-500"></i>
+                            <i class="fab fa-youtube text-red-500"></i>
                             {% elif quest.quest_type == 'daily_checkin' %}
-                                <i class="fas fa-calendar-check text-orange-400"></i>
+                            <i class="fas fa-calendar-check text-orange-400"></i>
                             {% elif quest.quest_type == 'manual' %}
-                                <i class="fas fa-hand-paper text-purple-400"></i>
+                            <i class="fas fa-hand-paper text-purple-400"></i>
                             {% else %}
-                                <i class="fas fa-link text-green-400"></i>
+                            <i class="fas fa-link text-green-400"></i>
                             {% endif %}
                         </span>
                         <div class="flex gap-2">
@@ -90,7 +91,7 @@
                             {{ quest.description or 'No description' }}
                         </p>
                         {% if quest.description and quest.description|length > 100 %}
-                        <button class="text-blue-400 hover:text-blue-300 text-xs mt-1 toggle-description-btn" 
+                        <button class="text-blue-400 hover:text-blue-300 text-xs mt-1 toggle-description-btn"
                             data-quest-id="{{ quest.id }}">
                             See more...
                         </button>
@@ -191,11 +192,13 @@
                             class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                             style="color: white;">
                             <option value="" style="background-color: #1f2937; color: #9ca3af;">Select...</option>
-                            <option value="telegram" style="background-color: #1f2937; color: white;">✈️ Telegram</option>
+                            <option value="telegram" style="background-color: #1f2937; color: white;">✈️ Telegram
+                            </option>
                             <option value="twitter" style="background-color: #1f2937; color: white;">🐦 Twitter</option>
                             <option value="youtube" style="background-color: #1f2937; color: white;">▶️ YouTube</option>
                             <option value="visit" style="background-color: #1f2937; color: white;">🔗 Website</option>
-                            <option value="daily_checkin" style="background-color: #1f2937; color: white;">📅 Daily Check-In</option>
+                            <option value="daily_checkin" style="background-color: #1f2937; color: white;">📅 Daily
+                                Check-In</option>
                             <option value="manual" style="background-color: #1f2937; color: white;">✋ Manual</option>
                         </select>
                     </div>
@@ -207,8 +210,10 @@
                             style="color: white;">
                             <option value="" style="background-color: #1f2937; color: #9ca3af;">Select...</option>
                             <option value="Social" style="background-color: #1f2937; color: white;">📱 Social</option>
-                            <option value="Engagement" style="background-color: #1f2937; color: white;">💬 Engagement</option>
-                            <option value="Educational" style="background-color: #1f2937; color: white;">📚 Educational</option>
+                            <option value="Engagement" style="background-color: #1f2937; color: white;">💬 Engagement
+                            </option>
+                            <option value="Educational" style="background-color: #1f2937; color: white;">📚 Educational
+                            </option>
                             <option value="Reward" style="background-color: #1f2937; color: white;">🎁 Reward</option>
                         </select>
                     </div>
@@ -360,26 +365,26 @@
                 if (e.key === 'Escape') closeModal();
             });
 
-    // Handle form submission with toast notifications
-    document.getElementById('questForm').addEventListener('submit', function(e) {
-        const isEdit = document.getElementById('questId').value !== '';
-        const action = isEdit ? 'updated' : 'created';
-        
-        // Show loading toast
-        showInfo(`${isEdit ? 'Updating' : 'Creating'} quest...`);
-        
-        // The form will submit normally, but we'll show success on next page load
-        sessionStorage.setItem('questAction', action);
-    });
-    
-    // Check for success message on page load
-    window.addEventListener('DOMContentLoaded', function() {
-        const action = sessionStorage.getItem('questAction');
-        if (action) {
-            sessionStorage.removeItem('questAction');
-            showSuccess(`Quest ${action} successfully!`);
-        }
-    });
+            // Handle form submission with toast notifications
+            document.getElementById('questForm').addEventListener('submit', function (e) {
+                const isEdit = document.getElementById('questId').value !== '';
+                const action = isEdit ? 'updated' : 'created';
+
+                // Show loading toast
+                showInfo(`${isEdit ? 'Updating' : 'Creating'} quest...`);
+
+                // The form will submit normally, but we'll show success on next page load
+                sessionStorage.setItem('questAction', action);
+            });
+
+            // Check for success message on page load
+            window.addEventListener('DOMContentLoaded', function () {
+                const action = sessionStorage.getItem('questAction');
+                if (action) {
+                    sessionStorage.removeItem('questAction');
+                    showSuccess(`Quest ${action} successfully!`);
+                }
+            });
 
             // Delegate events for dynamically generated buttons
             document.addEventListener('click', function (e) {
@@ -414,7 +419,8 @@
     </script>
 
     <!-- Quick Actions Bottom Navigation -->
-    <div class="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent backdrop-blur-lg border-t border-white/10 z-50">
+    <div
+        class="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent backdrop-blur-lg border-t border-white/10 z-50">
         <div class="max-w-7xl mx-auto px-4 py-3">
             <div class="flex items-center justify-center gap-3">
                 <a href="{{ url_for('admin.verification_queue') }}"
@@ -438,44 +444,44 @@
             </div>
         </div>
     </div>
-<!-- Toast Notification Container -->
-<div id="toast-container" class="fixed top-20 right-4 z-[60] space-y-3"></div>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-20 right-4 z-[60] space-y-3"></div>
 
-<script>
-    // Toast Notification System
-    function showToast(message, type = 'success') {
-        const toastContainer = document.getElementById('toast-container');
+    <script>
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toast-container');
 
-        // Define toast styles based on type
-        const styles = {
-            success: {
-                bg: 'bg-green-500',
-                icon: '✓',
-                iconBg: 'bg-green-600'
-            },
-            error: {
-                bg: 'bg-red-500',
-                icon: '✕',
-                iconBg: 'bg-red-600'
-            },
-            warning: {
-                bg: 'bg-yellow-500',
-                icon: '⚠',
-                iconBg: 'bg-yellow-600'
-            },
-            info: {
-                bg: 'bg-blue-500',
-                icon: 'ℹ',
-                iconBg: 'bg-blue-600'
-            }
-        };
+            // Define toast styles based on type
+            const styles = {
+                success: {
+                    bg: 'bg-green-500',
+                    icon: '✓',
+                    iconBg: 'bg-green-600'
+                },
+                error: {
+                    bg: 'bg-red-500',
+                    icon: '✕',
+                    iconBg: 'bg-red-600'
+                },
+                warning: {
+                    bg: 'bg-yellow-500',
+                    icon: '⚠',
+                    iconBg: 'bg-yellow-600'
+                },
+                info: {
+                    bg: 'bg-blue-500',
+                    icon: 'ℹ',
+                    iconBg: 'bg-blue-600'
+                }
+            };
 
-        const style = styles[type] || styles.info;
+            const style = styles[type] || styles.info;
 
-        // Create toast element
-        const toast = document.createElement('div');
-        toast.className = `flex items-center w-full max-w-xs p-4 text-white ${style.bg} rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
-        toast.innerHTML = `
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `flex items-center w-full max-w-xs p-4 text-white ${style.bg} rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+            toast.innerHTML = `
             <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 ${style.iconBg} rounded-lg">
                 <span class="text-lg font-bold">${style.icon}</span>
             </div>
@@ -488,26 +494,26 @@
             </button>
         `;
 
-        toastContainer.appendChild(toast);
+            toastContainer.appendChild(toast);
 
-        // Animate in
-        setTimeout(() => {
-            toast.classList.remove('translate-x-full');
-        }, 10);
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
 
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            toast.classList.add('translate-x-full', 'opacity-0');
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    }
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
 
-    // Global function to show success toast
-    window.showSuccess = (message) => showToast(message, 'success');
-    window.showError = (message) => showToast(message, 'error');
-    window.showWarning = (message) => showToast(message, 'warning');
-    window.showInfo = (message) => showToast(message, 'info');
-</script>
+        // Global function to show success toast
+        window.showSuccess = (message) => showToast(message, 'success');
+        window.showError = (message) => showToast(message, 'error');
+        window.showWarning = (message) => showToast(message, 'warning');
+        window.showInfo = (message) => showToast(message, 'info');
+    </script>
 </body>
 
 </html>

@@ -32,6 +32,22 @@
 
             <!-- Step 1: Start Watch Button -->
             <div id="startSection" class="text-center">
+                <!-- YouTube Thumbnail -->
+                <div id="thumbnailContainer" class="mb-8 max-w-lg mx-auto hidden relative group cursor-pointer"
+                    onclick="document.getElementById('startWatchBtn').click()">
+                    <div
+                        class="absolute inset-0 bg-cyber-gold/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <img id="youtubeThumbnail" src="" alt="Mission Target"
+                        class="relative w-full rounded-xl shadow-2xl border border-cyber-gold/30 transform group-hover:scale-[1.02] transition-transform duration-500 object-cover aspect-video">
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div
+                            class="w-16 h-16 bg-cyber-red/90 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-play text-white text-2xl ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+
                 <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Mission Briefing</h2>
                 <p class="text-gray-400 mb-6 font-mono text-sm">Initiate video playback to start the synchronization
                     timer.</p>
@@ -245,7 +261,7 @@
 <script>
     const questData = document.getElementById('questData');
     const questId = parseInt(questData.dataset.questId);
-    const videoUrl = questData.dataset.videoUrl;
+    const videoUrl = questData.dataset.videoUrl || '';
     const totalSeconds = 120; // 2 minutes
     let timeLeft = totalSeconds;
     let timerInterval = null;
@@ -266,6 +282,25 @@
     const continueBtn = document.getElementById('continueBtn');
 
     const circumference = 2 * Math.PI * 120; // 2πr
+
+    // Extract YouTube ID and set thumbnail
+    function getYoutubeId(url) {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    const videoId = getYoutubeId(videoUrl);
+    if (videoId) {
+        const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        const thumbnailImg = document.getElementById('youtubeThumbnail');
+        const thumbnailContainer = document.getElementById('thumbnailContainer');
+        if (thumbnailImg && thumbnailContainer) {
+            thumbnailImg.src = thumbnailUrl;
+            thumbnailContainer.classList.remove('hidden');
+        }
+    }
 
     // Start Watch Button
     startWatchBtn.addEventListener('click', () => {
