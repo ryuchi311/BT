@@ -222,3 +222,51 @@ def checkin_quest(quest_id):
         'points_earned': quest.points,
         'new_total_points': user.points
     })
+
+@quests_bp.route('/submit-proof/<int:quest_id>', methods=['POST'])
+def submit_proof(quest_id):
+    """Handle manual proof submission (e.g. Twitter screenshot)"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    proof_link = data.get('proof_link', '').strip()
+    
+    if not proof_link:
+        return jsonify({'error': 'Proof link required'}), 400
+        
+    quest = Quest.query.get_or_404(quest_id)
+    user = User.query.get(user_id)
+    
+    # Check if already submitted or completed
+    existing = UserQuest.query.filter_by(
+        user_id=user_id,
+        quest_id=quest_id
+    ).first()
+    
+    if existing:
+        if existing.status == 'completed':
+            return jsonify({'error': 'Quest already completed'}), 400
+        elif existing.status == 'pending':
+            # Update existing submission
+            existing.submission_link = proof_link
+            existing.submitted_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Proof updated. Under review.'})
+            
+    # Create new pending submission
+    uq = UserQuest(
+        user_id=user_id, 
+        quest_id=quest_id, 
+        status='pending',
+        submission_link=proof_link,
+        submitted_at=datetime.utcnow()
+    )
+    db.session.add(uq)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True, 
+        'message': 'Proof submitted successfully. Review pending.'
+    })

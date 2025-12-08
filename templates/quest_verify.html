@@ -18,6 +18,8 @@
                     <i class="fab fa-youtube text-4xl text-red-500"></i>
                     {% elif quest.quest_type == 'visit' %}
                     <i class="fas fa-globe text-4xl text-blue-400"></i>
+                    {% elif quest.quest_type == 'twitter' %}
+                    <i class="fab fa-twitter text-4xl text-blue-400"></i>
                     {% else %}
                     <i class="fas fa-star text-4xl text-cyber-gold"></i>
                     {% endif %}
@@ -123,7 +125,6 @@
             <!-- VISIT LAYOUT -->
             {% elif quest.quest_type == 'visit' %}
             <div id="visitStartSection" class="text-center">
-                <!-- Website Preview Card -->
                 <div
                     class="mb-8 max-w-lg mx-auto bg-cyber-black/50 border border-blue-400/30 rounded-xl p-4 relative group">
                     <div
@@ -162,7 +163,6 @@
                 <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Establishing Connection</h2>
                 <p class="text-gray-400 mb-6 font-mono text-sm">Synchronizing with external node...</p>
 
-                <!-- Hexagonal/Digital Timer -->
                 <div class="relative w-64 h-64 mx-auto mb-6 flex items-center justify-center">
                     <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full animate-pulse"></div>
                     <div
@@ -184,6 +184,50 @@
                     <i class="fas fa-gift mr-2"></i>
                     Claim Reward
                 </button>
+            </div>
+
+            <!-- TWITTER LAYOUT -->
+            {% elif quest.quest_type == 'twitter' %}
+            <div id="twitterSection" class="text-center">
+                <div class="mb-8 max-w-lg mx-auto bg-cyber-black/50 border border-blue-400/30 rounded-xl p-4 relative">
+                    <div class="flex items-center gap-4 mb-2 justify-center">
+                        <i class="fab fa-twitter text-4xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-white font-bold text-sm">Action Required</h3>
+                    <p class="text-blue-400 text-xs font-mono">{{ quest.action_url }}</p>
+                </div>
+
+                <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Mission Briefing</h2>
+                <div class="text-gray-400 mb-6 font-mono text-sm text-left max-w-md mx-auto space-y-2">
+                    <p>1. <span class="text-blue-400 font-bold">ENGAGE:</span> Click "Open Twitter" to perform the
+                        action.</p>
+                    <p>2. <span class="text-blue-400 font-bold">CAPTURE:</span> Take a screenshot as proof of
+                        completion.</p>
+                    <p>3. <span class="text-blue-400 font-bold">UPLOAD:</span> Provide the link to your screenshot
+                        below.</p>
+                </div>
+
+                <button onclick="window.open('{{ quest.action_url }}', '_blank')"
+                    class="mb-8 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg uppercase tracking-widest clip-path-polygon">
+                    <i class="fab fa-twitter mr-2"></i>
+                    Open Target
+                </button>
+
+                <div class="max-w-md mx-auto">
+                    <input type="text" id="proofLinkInput" placeholder="PASTE SCREENSHOT LINK HERE"
+                        class="w-full bg-cyber-black border border-cyber-gold/50 rounded-lg px-6 py-4 text-cyber-gold text-center text-sm font-bold placeholder-gray-700 focus:outline-none focus:border-cyber-gold focus:shadow-neon-gold transition-all mb-4 font-mono">
+
+                    <div id="errorMessage" class="hidden bg-red-500/10 border border-red-500/50 rounded-lg p-3 mb-4">
+                        <p class="text-red-400 text-xs font-mono uppercase"><i
+                                class="fas fa-exclamation-circle mr-2"></i> <span id="errorText"></span></p>
+                    </div>
+
+                    <button id="submitProofBtn"
+                        class="w-full bg-cyber-gold hover:bg-yellow-400 text-cyber-black font-bold py-4 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-neon-gold uppercase tracking-widest clip-path-polygon">
+                        <i class="fas fa-file-upload mr-2"></i>
+                        Submit Proof
+                    </button>
+                </div>
             </div>
             {% endif %}
 
@@ -212,6 +256,7 @@
                     <div class="confetti bg-cyber-red"></div>
                     <div class="confetti bg-white"></div>
                 </div>
+                <!-- Success Icon -->
                 <div
                     class="w-24 h-24 mx-auto bg-cyber-black border-2 border-cyber-gold rounded-full flex items-center justify-center mb-6 shadow-neon-gold animate-bounce">
                     <i class="fas fa-trophy text-5xl text-cyber-gold"></i>
@@ -255,7 +300,6 @@
         }
     }
 
-    /* Confetti (Simplified for brevity, assume CSS already exists or added via previous files) */
     .confetti {
         position: absolute;
         width: 10px;
@@ -286,6 +330,7 @@
     const totalPoints = document.getElementById('totalPoints');
     const continueBtn = document.getElementById('continueBtn');
 
+    // --- YOUTUBE LOGIC ---
     if (questType === 'youtube') {
         const totalSeconds = 120;
         let timeLeft = totalSeconds;
@@ -352,6 +397,7 @@
             });
         }
     }
+    // --- VISIT LOGIC ---
     else if (questType === 'visit') {
         const startVisitBtn = document.getElementById('startVisitBtn');
         const claimRewardBtn = document.getElementById('claimRewardBtn');
@@ -401,6 +447,39 @@
             });
         }
     }
+    // --- TWITTER LOGIC ---
+    else if (questType === 'twitter') {
+        const submitProofBtn = document.getElementById('submitProofBtn');
+        if (submitProofBtn) {
+            submitProofBtn.addEventListener('click', async () => {
+                const link = document.getElementById('proofLinkInput').value.trim();
+                if (!link) return showError('LINK REQUIRED');
+
+                submitProofBtn.disabled = true;
+                submitProofBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Submitting...';
+
+                try {
+                    const res = await fetch(`/quests/submit-proof/${questId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ proof_link: link })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showSubmissionReceived();
+                    } else {
+                        showError(data.error);
+                        submitProofBtn.disabled = false;
+                        submitProofBtn.innerHTML = '<i class="fas fa-file-upload mr-2"></i> Submit Proof';
+                    }
+                } catch (e) {
+                    showError('NETWORK ERROR');
+                    submitProofBtn.disabled = false;
+                    submitProofBtn.innerHTML = '<i class="fas fa-file-upload mr-2"></i> Submit Proof';
+                }
+            });
+        }
+    }
 
     function showError(msg) {
         if (errorText && errorMessage) {
@@ -411,9 +490,32 @@
     }
 
     function showCongratulations(points, total) {
-        if (pointsEarned) pointsEarned.textContent = (points > 0 && points < 100000) ? `+${points}` : 'Mission Complete';
+        if (pointsEarned) {
+            pointsEarned.textContent = (points > 0 && points < 100000) ? `+${points}` : 'Mission Complete';
+            pointsEarned.classList.remove("text-2xl");
+            pointsEarned.classList.add("text-5xl");
+        }
         if (totalPoints) totalPoints.textContent = total;
         if (congratsModal) congratsModal.classList.remove('hidden');
+    }
+
+    function showSubmissionReceived() {
+        if (congratsModal) {
+            const title = document.getElementById('congrats-title');
+            if (title) {
+                title.innerText = "SUBMISSION RECEIVED";
+                title.dataset.text = "SUBMISSION RECEIVED";
+            }
+            const msg = congratsModal.querySelector('p.text-gray-400');
+            if (msg) msg.innerText = "Your proof has been submitted for verification.";
+
+            if (pointsEarned) {
+                pointsEarned.innerText = "PENDING REVIEW";
+                pointsEarned.classList.remove("text-5xl");
+                pointsEarned.classList.add("text-2xl");
+            }
+            congratsModal.classList.remove('hidden');
+        }
     }
 
     if (continueBtn) continueBtn.addEventListener('click', () => window.location.href = '/quests/');
