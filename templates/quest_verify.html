@@ -186,12 +186,16 @@
                 </button>
             </div>
 
-            <!-- TWITTER LAYOUT -->
-            {% elif quest.quest_type == 'twitter' %}
-            <div id="twitterSection" class="text-center">
+            <!-- TWITTER & MANUAL LAYOUT -->
+            {% elif quest.quest_type in ['twitter', 'manual'] %}
+            <div id="manualSection" class="text-center">
                 <div class="mb-8 max-w-lg mx-auto bg-cyber-black/50 border border-blue-400/30 rounded-xl p-4 relative">
                     <div class="flex items-center gap-4 mb-2 justify-center">
+                        {% if quest.quest_type == 'twitter' %}
                         <i class="fab fa-twitter text-4xl text-blue-400"></i>
+                        {% else %}
+                        <i class="fas fa-clipboard-check text-4xl text-purple-400"></i>
+                        {% endif %}
                     </div>
                     <h3 class="text-white font-bold text-sm">Action Required</h3>
                     <p class="text-blue-400 text-xs font-mono">{{ quest.action_url }}</p>
@@ -199,22 +203,32 @@
 
                 <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Mission Briefing</h2>
                 <div class="text-gray-400 mb-6 font-mono text-sm text-left max-w-md mx-auto space-y-2">
-                    <p>1. <span class="text-blue-400 font-bold">ENGAGE:</span> Click "Open Twitter" to perform the
+                    <p>1. <span class="text-blue-400 font-bold">ENGAGE:</span> Click "Open Target" to perform the
                         action.</p>
                     <p>2. <span class="text-blue-400 font-bold">CAPTURE:</span> Take a screenshot as proof of
                         completion.</p>
-                    <p>3. <span class="text-blue-400 font-bold">UPLOAD:</span> Provide the link to your screenshot
-                        below.</p>
+                    <p>3. <span class="text-blue-400 font-bold">UPLOAD:</span>
+                        {% if quest.quest_type == 'manual' %}
+                        Upload the screenshot you made and Submit your public Facebook post URL below (required for
+                        verification, preventing re-use screenshots & prevents cheating).
+                        {% else %}
+                        Provide the link to your screenshot below.
+                        {% endif %}
+                    </p>
                 </div>
 
                 <button onclick="window.open('{{ quest.action_url }}', '_blank')"
                     class="mb-8 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg uppercase tracking-widest clip-path-polygon">
-                    <i class="fab fa-twitter mr-2"></i>
-                    Open Target
+                    {% if quest.quest_type == 'twitter' %}
+                    <i class="fab fa-twitter mr-2"></i> Open Twitter
+                    {% else %}
+                    <i class="fas fa-external-link-alt mr-2"></i> Open Target
+                    {% endif %}
                 </button>
 
                 <div class="max-w-md mx-auto">
-                    <input type="text" id="proofLinkInput" placeholder="PASTE SCREENSHOT LINK HERE"
+                    <input type="text" id="proofLinkInput"
+                        placeholder="{% if quest.quest_type == 'manual' %}PASTE FACEBOOK POST LINK HERE{% else %}PASTE SCREENSHOT LINK HERE{% endif %}"
                         class="w-full bg-cyber-black border border-cyber-gold/50 rounded-lg px-6 py-4 text-cyber-gold text-center text-sm font-bold placeholder-gray-700 focus:outline-none focus:border-cyber-gold focus:shadow-neon-gold transition-all mb-4 font-mono">
 
                     <div id="errorMessage" class="hidden bg-red-500/10 border border-red-500/50 rounded-lg p-3 mb-4">
@@ -447,8 +461,8 @@
             });
         }
     }
-    // --- TWITTER LOGIC ---
-    else if (questType === 'twitter') {
+    // --- TWITTER & MANUAL LOGIC ---
+    else if (questType === 'twitter' || questType === 'manual') {
         const submitProofBtn = document.getElementById('submitProofBtn');
         if (submitProofBtn) {
             submitProofBtn.addEventListener('click', async () => {
