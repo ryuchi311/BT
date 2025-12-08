@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login - Quest Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            black: '#1f1f20',
+                            dark: '#202020',
+                            gold: '#FEBD11',
+                            yellow: '#fdbd16',
+                            red: '#f31e21',
+                            gray: '#585858',
+                            light: '#e3c293',
+                            orange: '#ef6d1f'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #1f1f20;
+            background-image:
+                radial-gradient(circle at 50% 0%, rgba(254, 189, 17, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(243, 30, 33, 0.05) 0%, transparent 50%);
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(31, 31, 32, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md animate-fade-in">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Quest Hub"
+                class="h-24 mx-auto object-contain filter drop-shadow-[0_0_15px_rgba(254,189,17,0.3)] mb-4">
+            <h1 class="text-3xl font-bold text-white tracking-widest uppercase mb-1">Welcome</h1>
+            <p class="text-gray-400">Join the adventure</p>
+        </div>
+
+        <!-- Login Card -->
+        <div
+            class="glass-panel rounded-2xl p-6 md:p-8 shadow-2xl shadow-black/50 border-t border-white/10 relative overflow-hidden">
+            <!-- Decorative accent -->
+            <div
+                class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyber-gold to-transparent opacity-50">
+            </div>
+
+            <form action="{{ url_for('auth.login') }}" method="POST" class="space-y-6">
+
+                {% if error %}
+                <div
+                    class="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <div>
+                    <label for="email"
+                        class="block mb-2 text-sm font-medium text-gray-300 uppercase tracking-wider">Email
+                        Address</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <input type="email" id="email" name="email" required
+                            class="bg-cyber-black/50 border border-gray-700 text-white text-sm rounded-lg focus:ring-cyber-gold focus:border-cyber-gold block w-full pl-10 p-3 placeholder-gray-600 transition-colors"
+                            placeholder="name@example.com">
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full text-cyber-black bg-gradient-to-r from-cyber-gold to-cyber-yellow hover:from-cyber-yellow hover:to-cyber-gold focus:ring-4 focus:outline-none focus:ring-cyber-gold/50 font-bold rounded-lg text-sm px-5 py-3 text-center uppercase tracking-wider shadow-lg shadow-cyber-gold/20 transition-all transform hover:scale-[1.02]">
+                    Continue
+                </button>
+            </form>
+
+            <div class="flex items-center my-6">
+                <div class="w-full h-px bg-gray-700"></div>
+                <div class="px-4 text-sm text-gray-500 font-medium">OR</div>
+                <div class="w-full h-px bg-gray-700"></div>
+            </div>
+
+            <button type="button" onclick="alert('Telegram integration pending bot configuration')"
+                class="w-full text-white bg-[#0088cc] hover:bg-[#007dbb] focus:ring-4 focus:outline-none focus:ring-[#0088cc]/50 font-bold rounded-lg text-sm px-5 py-3 text-center flex items-center justify-center gap-2 transition-all">
+                <i class="fab fa-telegram-plane text-xl"></i>
+                Connect with Telegram
+            </button>
+        </div>
+
+        <p class="text-center mt-6 text-gray-500 text-xs">
+            By continuing, you agree to our Terms of Service and Privacy Policy.
+        </p>
+    </div>
+
+</body>
+
+</html>

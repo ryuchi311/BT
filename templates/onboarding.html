@@ -60,17 +60,18 @@
                 </div>
 
                 <!-- Terms & Conditions -->
+                <!-- Mission Briefing -->
                 <div
                     class="bg-cyber-black/50 rounded-lg p-4 border border-white/10 max-h-32 overflow-y-auto custom-scrollbar">
                     <h3 class="text-white font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
                         <i class="fas fa-file-contract text-cyber-gold"></i>
-                        Quest Agreement
+                        Mission Briefing
                     </h3>
                     <div class="text-gray-400 text-xs space-y-2 font-mono">
-                        <p>1. ACCEPTANCE: By initializing, you agree to the Brgy Tamago Quest terms.</p>
-                        <p>2. INTEGRITY: Fraudulent activity results in immediate termination.</p>
-                        <p>3. ASSETS: Credits have no real-world value outside this system.</p>
-                        <p>4. DATA: Your identity is secured within our encrypted servers.</p>
+                        <p>1. <span class="text-cyber-gold font-bold">JOIN:</span> Start your adventure now.</p>
+                        <p>2. <span class="text-cyber-gold font-bold">PLAY:</span> Complete quests fairly.</p>
+                        <p>3. <span class="text-cyber-gold font-bold">EARN:</span> Collect points for rewards.</p>
+                        <p>4. <span class="text-cyber-gold font-bold">SAFE:</span> Your data is hidden and secure.</p>
                     </div>
                 </div>
 
@@ -79,7 +80,7 @@
                     <input type="checkbox" id="terms" name="terms" required
                         class="mt-1 w-4 h-4 rounded border-gray-600 bg-cyber-black text-cyber-gold focus:ring-cyber-gold focus:ring-offset-cyber-black">
                     <label for="terms" class="text-gray-400 text-xs">
-                        I accept the <span class="text-cyber-gold font-bold">Quest Agreement</span>.
+                        I accept the <span class="text-cyber-gold font-bold">Mission Briefing</span>.
                     </label>
                 </div>
 
@@ -248,7 +249,7 @@
         const terms = document.getElementById('terms').checked;
 
         if (!terms) {
-            showModal('Error', 'Quest Agreement must be accepted.');
+            showModal('Error', 'Mission Briefing must be accepted.');
             return;
         }
 

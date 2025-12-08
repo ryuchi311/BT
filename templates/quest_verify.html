@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div data-quest-id="{{ quest.id }}" data-video-url="{{ quest.action_url }}" id="questData" style="display: none;"></div>
-<div class="min-h-screen flex items-center justify-center px-4 py-12">
+<div data-quest-id="{{ quest.id }}" data-video-url="{{ quest.action_url }}" data-quest-type="{{ quest.quest_type }}"
+    id="questData" style="display: none;"></div>
+
+<div class="min-h-screen flex items-center justify-center px-4 py-12" style="padding-top: 5px;">
     <div class="max-w-2xl w-full">
         <!-- Quest Header Card -->
         <div
@@ -12,7 +14,13 @@
             <div class="text-center relative z-10">
                 <div
                     class="w-20 h-20 mx-auto bg-cyber-black rounded-full flex items-center justify-center mb-4 border border-white/10 shadow-lg">
+                    {% if quest.quest_type == 'youtube' %}
                     <i class="fab fa-youtube text-4xl text-red-500"></i>
+                    {% elif quest.quest_type == 'visit' %}
+                    <i class="fas fa-globe text-4xl text-blue-400"></i>
+                    {% else %}
+                    <i class="fas fa-star text-4xl text-cyber-gold"></i>
+                    {% endif %}
                 </div>
                 <h1 class="text-3xl font-bold text-white uppercase tracking-widest glitch-text mb-2"
                     data-text="{{ quest.title }}">
@@ -30,7 +38,8 @@
         <!-- Verification Steps Card -->
         <div class="bg-cyber-dark/80 backdrop-blur-md rounded-2xl border border-white/5 shadow-2xl p-8 relative">
 
-            <!-- Step 1: Start Watch Button -->
+            <!-- YOUTUBE LAYOUT -->
+            {% if quest.quest_type == 'youtube' %}
             <div id="startSection" class="text-center">
                 <!-- YouTube Thumbnail -->
                 <div id="thumbnailContainer" class="mb-8 max-w-lg mx-auto hidden relative group cursor-pointer"
@@ -49,8 +58,16 @@
                 </div>
 
                 <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Mission Briefing</h2>
-                <p class="text-gray-400 mb-6 font-mono text-sm">Initiate video playback to start the synchronization
-                    timer.</p>
+                <div class="text-gray-400 mb-6 font-mono text-sm text-left max-w-md mx-auto space-y-2">
+                    <p>1. <span class="text-cyber-gold font-bold">INITIATE:</span> Click "Start Mission" to open the
+                        secure transmission.</p>
+                    <p>2. <span class="text-cyber-gold font-bold">SYNC:</span> Watch the video transmission fully while
+                        the timer synchronizes.</p>
+                    <p>3. <span class="text-cyber-gold font-bold">RETRIEVE:</span> Locate the hidden <span
+                            class="text-white">ACCESS CODE</span> within the video content.</p>
+                    <p>4. <span class="text-cyber-gold font-bold">VERIFY:</span> Enter the code here once the sync timer
+                        completes.</p>
+                </div>
                 <button id="startWatchBtn"
                     class="bg-cyber-red hover:bg-red-600 text-white font-bold py-4 px-8 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-neon-red uppercase tracking-widest clip-path-polygon">
                     <i class="fab fa-youtube mr-2"></i>
@@ -58,13 +75,11 @@
                 </button>
             </div>
 
-            <!-- Step 2: Countdown Timer -->
             <div id="countdownSection" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Syncing...</h2>
                 <p class="text-gray-400 mb-6 font-mono text-sm">Watch the transmission. Code input unlocks upon
                     completion.</p>
 
-                <!-- Circular Progress Timer -->
                 <div class="relative w-64 h-64 mx-auto mb-6">
                     <svg class="transform -rotate-90 w-64 h-64">
                         <circle cx="128" cy="128" r="120" stroke="rgba(255,255,255,0.05)" stroke-width="4"
@@ -81,13 +96,11 @@
 
                 <div class="bg-cyber-black/50 border border-cyber-gold/20 rounded-lg p-4">
                     <p class="text-cyber-gold text-xs font-mono uppercase">
-                        <i class="fas fa-lock mr-2"></i>
-                        Security Protocol Active
+                        <i class="fas fa-lock mr-2"></i> Security Protocol Active
                     </p>
                 </div>
             </div>
 
-            <!-- Step 3: Code Input -->
             <div id="codeSection" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Verification Required</h2>
                 <p class="text-gray-400 mb-6 font-mono text-sm">Enter the access code from the transmission.</p>
@@ -96,29 +109,91 @@
                     <input type="text" id="codeInput" placeholder="ENTER CODE"
                         class="w-full bg-cyber-black border border-cyber-gold/50 rounded-lg px-6 py-4 text-cyber-gold text-center text-2xl font-bold placeholder-gray-700 focus:outline-none focus:border-cyber-gold focus:shadow-neon-gold transition-all mb-4 uppercase tracking-widest font-mono"
                         maxlength="20">
-
                     <div id="errorMessage" class="hidden bg-red-500/10 border border-red-500/50 rounded-lg p-3 mb-4">
-                        <p class="text-red-400 text-xs font-mono uppercase">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span id="errorText"></span>
-                        </p>
+                        <p class="text-red-400 text-xs font-mono uppercase"><i
+                                class="fas fa-exclamation-circle mr-2"></i> <span id="errorText"></span></p>
                     </div>
-
                     <button id="submitCodeBtn"
                         class="w-full bg-cyber-gold hover:bg-yellow-400 text-cyber-black font-bold py-4 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-neon-gold uppercase tracking-widest clip-path-polygon">
-                        <i class="fas fa-check mr-2"></i>
-                        Verify Access
+                        <i class="fas fa-check mr-2"></i> Verify Access
                     </button>
                 </div>
             </div>
+
+            <!-- VISIT LAYOUT -->
+            {% elif quest.quest_type == 'visit' %}
+            <div id="visitStartSection" class="text-center">
+                <!-- Website Preview Card -->
+                <div
+                    class="mb-8 max-w-lg mx-auto bg-cyber-black/50 border border-blue-400/30 rounded-xl p-4 relative group">
+                    <div
+                        class="absolute -top-3 -right-3 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full border border-white/20 shadow-lg animate-pulse">
+                        LINK DETECTED
+                    </div>
+                    <div class="flex items-center gap-4 mb-2">
+                        <div
+                            class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center border border-blue-500/30">
+                            <i class="fas fa-link text-blue-400 text-xl"></i>
+                        </div>
+                        <div class="text-left overflow-hidden">
+                            <h3 class="text-white font-bold text-sm truncate">Target URL</h3>
+                            <p class="text-blue-400 text-xs truncate font-mono">{{ quest.action_url }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Mission Briefing</h2>
+                <div class="text-gray-400 mb-6 font-mono text-sm text-left max-w-md mx-auto space-y-2">
+                    <p>1. <span class="text-blue-400 font-bold">ACCESS:</span> Click "Initialize Link" to visit the
+                        target.</p>
+                    <p>2. <span class="text-blue-400 font-bold">ESTABLISH:</span> Maintain connection for the duration.
+                    </p>
+                    <p>3. <span class="text-blue-400 font-bold">CLAIM:</span> Return here to claim your reward.</p>
+                </div>
+
+                <button id="startVisitBtn"
+                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-cyan-500/50 uppercase tracking-widest clip-path-polygon">
+                    <i class="fas fa-external-link-alt mr-2"></i>
+                    Initialize Link
+                </button>
+            </div>
+
+            <div id="visitTimerSection" class="hidden text-center">
+                <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Establishing Connection</h2>
+                <p class="text-gray-400 mb-6 font-mono text-sm">Synchronizing with external node...</p>
+
+                <!-- Hexagonal/Digital Timer -->
+                <div class="relative w-64 h-64 mx-auto mb-6 flex items-center justify-center">
+                    <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full animate-pulse"></div>
+                    <div
+                        class="absolute inset-4 border-4 border-dashed border-blue-400/40 rounded-full animate-spin-slow">
+                    </div>
+                    <div class="text-center z-10">
+                        <span id="visitTimerDisplay" class="text-6xl font-bold text-white font-mono block">15</span>
+                        <span class="text-blue-400 text-xs uppercase tracking-widest">Seconds</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="claimSection" class="hidden text-center">
+                <h2 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Connection Verified</h2>
+                <p class="text-gray-400 mb-6 font-mono text-sm">Target acquired. Claim your reward.</p>
+
+                <button id="claimRewardBtn"
+                    class="w-full bg-cyber-gold hover:bg-yellow-400 text-cyber-black font-bold py-4 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-neon-gold uppercase tracking-widest clip-path-polygon">
+                    <i class="fas fa-gift mr-2"></i>
+                    Claim Reward
+                </button>
+            </div>
+            {% endif %}
+
         </div>
 
         <!-- Back Button -->
         <div class="text-center mt-6">
             <a href="{{ url_for('quests.list_quests') }}"
                 class="text-gray-500 hover:text-cyber-gold transition-colors text-sm uppercase tracking-wider">
-                <i class="fas fa-arrow-left mr-2"></i>
-                Abort Mission
+                <i class="fas fa-arrow-left mr-2"></i> Abort Mission
             </a>
         </div>
     </div>
@@ -128,45 +203,33 @@
 <div id="congratsModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="congrats-title" role="dialog"
     aria-modal="true">
     <div class="fixed inset-0 bg-cyber-black/90 backdrop-blur-md transition-opacity"></div>
-
     <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4">
             <div
                 class="relative transform overflow-hidden rounded-2xl bg-cyber-dark border border-cyber-gold text-center shadow-2xl shadow-cyber-gold/20 transition-all w-full max-w-md p-8">
-                <!-- Confetti Animation -->
                 <div class="confetti-container absolute inset-0 pointer-events-none overflow-hidden opacity-50">
                     <div class="confetti bg-cyber-gold"></div>
                     <div class="confetti bg-cyber-red"></div>
                     <div class="confetti bg-white"></div>
                 </div>
-
-                <!-- Success Icon -->
                 <div
                     class="w-24 h-24 mx-auto bg-cyber-black border-2 border-cyber-gold rounded-full flex items-center justify-center mb-6 shadow-neon-gold animate-bounce">
                     <i class="fas fa-trophy text-5xl text-cyber-gold"></i>
                 </div>
-
                 <h2 id="congrats-title" class="text-3xl font-bold text-white mb-2 uppercase tracking-widest glitch-text"
-                    data-text="Mission Complete">
-                    Mission Complete
-                </h2>
-
+                    data-text="Mission Complete">Mission Complete</h2>
                 <p class="text-gray-400 mb-6 font-mono text-sm">Reward transferred to your account.</p>
-
                 <div class="bg-cyber-gold/10 border border-cyber-gold/30 rounded-lg p-6 mb-6">
                     <p class="text-cyber-gold text-xs uppercase tracking-wider mb-2">Credits Acquired</p>
                     <p id="pointsEarned" class="text-5xl font-bold text-white text-shadow-gold">+0</p>
                 </div>
-
                 <div class="bg-white/5 rounded-lg p-4 mb-6 flex justify-between items-center">
                     <p class="text-gray-400 text-xs uppercase tracking-wider">Total Balance</p>
                     <p id="totalPoints" class="text-xl font-bold text-cyber-gold">0</p>
                 </div>
-
                 <button id="continueBtn"
                     class="w-full bg-cyber-gold hover:bg-yellow-400 text-cyber-black font-bold py-4 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-neon-gold uppercase tracking-widest clip-path-polygon">
-                    <i class="fas fa-forward mr-2"></i>
-                    Continue
+                    <i class="fas fa-forward mr-2"></i> Continue
                 </button>
             </div>
         </div>
@@ -182,7 +245,17 @@
         text-shadow: 0 0 10px rgba(254, 189, 17, 0.5);
     }
 
-    /* Confetti Animation */
+    .animate-spin-slow {
+        animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Confetti (Simplified for brevity, assume CSS already exists or added via previous files) */
     .confetti {
         position: absolute;
         width: 10px;
@@ -191,66 +264,7 @@
         animation: confetti-fall 3s linear infinite;
     }
 
-    .confetti:nth-child(1) {
-        left: 10%;
-        animation-delay: 0s;
-        background: #FEBD11;
-    }
-
-    .confetti:nth-child(2) {
-        left: 20%;
-        animation-delay: 0.2s;
-        background: #f31e21;
-    }
-
-    .confetti:nth-child(3) {
-        left: 30%;
-        animation-delay: 0.4s;
-        background: #ffffff;
-    }
-
-    .confetti:nth-child(4) {
-        left: 40%;
-        animation-delay: 0.6s;
-        background: #FEBD11;
-    }
-
-    .confetti:nth-child(5) {
-        left: 50%;
-        animation-delay: 0.8s;
-        background: #f31e21;
-    }
-
-    .confetti:nth-child(6) {
-        left: 60%;
-        animation-delay: 1s;
-        background: #ffffff;
-    }
-
-    .confetti:nth-child(7) {
-        left: 70%;
-        animation-delay: 1.2s;
-        background: #FEBD11;
-    }
-
-    .confetti:nth-child(8) {
-        left: 80%;
-        animation-delay: 1.4s;
-        background: #f31e21;
-    }
-
-    .confetti:nth-child(9) {
-        left: 90%;
-        animation-delay: 1.6s;
-        background: #ffffff;
-    }
-
     @keyframes confetti-fall {
-        0% {
-            top: -10%;
-            transform: translateX(0) rotateZ(0deg);
-        }
-
         100% {
             top: 110%;
             transform: translateX(100px) rotateZ(360deg);
@@ -262,144 +276,146 @@
     const questData = document.getElementById('questData');
     const questId = parseInt(questData.dataset.questId);
     const videoUrl = questData.dataset.videoUrl || '';
-    const totalSeconds = 120; // 2 minutes
-    let timeLeft = totalSeconds;
+    const questType = questData.dataset.questType;
     let timerInterval = null;
 
-    const startSection = document.getElementById('startSection');
-    const countdownSection = document.getElementById('countdownSection');
-    const codeSection = document.getElementById('codeSection');
-    const startWatchBtn = document.getElementById('startWatchBtn');
-    const timerDisplay = document.getElementById('timerDisplay');
-    const progressCircle = document.getElementById('progressCircle');
-    const codeInput = document.getElementById('codeInput');
-    const submitCodeBtn = document.getElementById('submitCodeBtn');
-    const errorMessage = document.getElementById('errorMessage');
     const errorText = document.getElementById('errorText');
+    const errorMessage = document.getElementById('errorMessage');
     const congratsModal = document.getElementById('congratsModal');
     const pointsEarned = document.getElementById('pointsEarned');
     const totalPoints = document.getElementById('totalPoints');
     const continueBtn = document.getElementById('continueBtn');
 
-    const circumference = 2 * Math.PI * 120; // 2πr
+    if (questType === 'youtube') {
+        const totalSeconds = 120;
+        let timeLeft = totalSeconds;
+        const circumference = 2 * Math.PI * 120;
 
-    // Extract YouTube ID and set thumbnail
-    function getYoutubeId(url) {
-        if (!url) return null;
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
-    }
-
-    const videoId = getYoutubeId(videoUrl);
-    if (videoId) {
-        const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-        const thumbnailImg = document.getElementById('youtubeThumbnail');
-        const thumbnailContainer = document.getElementById('thumbnailContainer');
-        if (thumbnailImg && thumbnailContainer) {
-            thumbnailImg.src = thumbnailUrl;
-            thumbnailContainer.classList.remove('hidden');
+        function getYoutubeId(url) {
+            if (!url) return null;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
         }
-    }
-
-    // Start Watch Button
-    startWatchBtn.addEventListener('click', () => {
-        window.open(videoUrl, '_blank');
-        startSection.classList.add('hidden');
-        countdownSection.classList.remove('hidden');
-        startCountdown();
-    });
-
-    function startCountdown() {
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            updateTimer();
-
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                showCodeInput();
+        const videoId = getYoutubeId(videoUrl);
+        if (videoId) {
+            const thumb = document.getElementById('youtubeThumbnail');
+            const container = document.getElementById('thumbnailContainer');
+            if (thumb && container) {
+                thumb.src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                container.classList.remove('hidden');
             }
-        }, 1000);
-    }
-
-    function updateTimer() {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-        const progress = (timeLeft / totalSeconds) * circumference;
-        progressCircle.style.strokeDashoffset = circumference - progress;
-
-        if (timeLeft <= 10) {
-            timerDisplay.classList.add('text-cyber-red', 'animate-pulse');
-        }
-    }
-
-    function showCodeInput() {
-        countdownSection.classList.add('hidden');
-        codeSection.classList.remove('hidden');
-        codeInput.focus();
-    }
-
-    submitCodeBtn.addEventListener('click', submitCode);
-    codeInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            submitCode();
-        }
-    });
-
-    async function submitCode() {
-        const code = codeInput.value.trim();
-
-        if (!code) {
-            showError('ACCESS CODE REQUIRED');
-            return;
         }
 
-        submitCodeBtn.disabled = true;
-        submitCodeBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>VERIFYING...';
+        const startWatchBtn = document.getElementById('startWatchBtn');
+        if (startWatchBtn) {
+            startWatchBtn.addEventListener('click', () => {
+                window.open(videoUrl, '_blank');
+                document.getElementById('startSection').classList.add('hidden');
+                document.getElementById('countdownSection').classList.remove('hidden');
 
-        try {
-            const response = await fetch(`/quests/verify-code/${questId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ code })
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    const m = Math.floor(timeLeft / 60);
+                    const s = timeLeft % 60;
+                    document.getElementById('timerDisplay').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+                    const progress = (timeLeft / totalSeconds) * circumference;
+                    const circle = document.getElementById('progressCircle');
+                    if (circle) circle.style.strokeDashoffset = circumference - progress;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        document.getElementById('countdownSection').classList.add('hidden');
+                        document.getElementById('codeSection').classList.remove('hidden');
+                    }
+                }, 1000);
             });
+        }
 
-            const data = await response.json();
+        const submitCodeBtn = document.getElementById('submitCodeBtn');
+        if (submitCodeBtn) {
+            submitCodeBtn.addEventListener('click', async () => {
+                const code = document.getElementById('codeInput').value.trim();
+                if (!code) return showError('CODE REQUIRED');
 
-            if (data.success) {
-                showCongratulations(data.points, data.new_total_points);
-            } else {
-                showError(data.error || 'INVALID ACCESS CODE');
-                submitCodeBtn.disabled = false;
-                submitCodeBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Verify Access';
-            }
-        } catch (error) {
-            showError('NETWORK ERROR');
-            submitCodeBtn.disabled = false;
-            submitCodeBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Verify Access';
+                try {
+                    const res = await fetch(`/quests/verify-code/${questId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code })
+                    });
+                    const data = await res.json();
+                    if (data.success) showCongratulations(data.points, data.new_total_points);
+                    else showError(data.error);
+                } catch (e) { showError('NETWORK ERROR'); }
+            });
+        }
+    }
+    else if (questType === 'visit') {
+        const startVisitBtn = document.getElementById('startVisitBtn');
+        const claimRewardBtn = document.getElementById('claimRewardBtn');
+        let visitTime = 15;
+
+        if (startVisitBtn) {
+            startVisitBtn.addEventListener('click', () => {
+                window.open(videoUrl, '_blank');
+                document.getElementById('visitStartSection').classList.add('hidden');
+                document.getElementById('visitTimerSection').classList.remove('hidden');
+
+                timerInterval = setInterval(() => {
+                    visitTime--;
+                    document.getElementById('visitTimerDisplay').textContent = visitTime;
+
+                    if (visitTime <= 0) {
+                        clearInterval(timerInterval);
+                        document.getElementById('visitTimerSection').classList.add('hidden');
+                        document.getElementById('claimSection').classList.remove('hidden');
+                    }
+                }, 1000);
+            });
+        }
+
+        if (claimRewardBtn) {
+            claimRewardBtn.addEventListener('click', async () => {
+                claimRewardBtn.disabled = true;
+                claimRewardBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Claiming...';
+                try {
+                    const res = await fetch(`/quests/complete/${questId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        showCongratulations(data.new_points - (parseInt(document.getElementById('totalPoints').innerText) || 0), data.new_points);
+                    } else {
+                        showError(data.error);
+                        claimRewardBtn.disabled = false;
+                        claimRewardBtn.innerHTML = '<i class="fas fa-gift mr-2"></i> Claim Reward';
+                    }
+                } catch (e) {
+                    showError('NETWORK ERROR');
+                    claimRewardBtn.disabled = false;
+                    claimRewardBtn.innerHTML = '<i class="fas fa-gift mr-2"></i> Claim Reward';
+                }
+            });
         }
     }
 
-    function showError(message) {
-        errorText.textContent = message;
-        errorMessage.classList.remove('hidden');
-        setTimeout(() => {
-            errorMessage.classList.add('hidden');
-        }, 3000);
+    function showError(msg) {
+        if (errorText && errorMessage) {
+            errorText.textContent = msg;
+            errorMessage.classList.remove('hidden');
+            setTimeout(() => errorMessage.classList.add('hidden'), 3000);
+        }
     }
 
     function showCongratulations(points, total) {
-        pointsEarned.textContent = `+${points}`;
-        totalPoints.textContent = total;
-        congratsModal.classList.remove('hidden');
+        if (pointsEarned) pointsEarned.textContent = (points > 0 && points < 100000) ? `+${points}` : 'Mission Complete';
+        if (totalPoints) totalPoints.textContent = total;
+        if (congratsModal) congratsModal.classList.remove('hidden');
     }
 
-    continueBtn.addEventListener('click', () => {
-        window.location.href = '/quests/';
-    });
+    if (continueBtn) continueBtn.addEventListener('click', () => window.location.href = '/quests/');
 </script>
 {% endblock %}

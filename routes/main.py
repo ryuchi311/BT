@@ -7,11 +7,15 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     # Mock user for dev if not authenticated
-    user = getattr(g, 'user', None)
+    # Check for authentication
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('auth.login'))
+        
+    user = User.query.get(user_id)
     if not user:
-        # For prototype, just show a demo user or redirect to auth
-        # We'll pass a dummy user object for the template to render
-        user = {'username': 'Traveler', 'points': 0, 'xp': 0}
+        session.pop('user_id', None)
+        return redirect(url_for('auth.login'))
     
     return render_template('index.html', user=user)
 
