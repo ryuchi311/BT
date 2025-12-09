@@ -21,11 +21,362 @@
         .modal.active {
             display: flex;
         }
+
+        /* Arc Reactor Loading Spinner */
+        .arc-reactor-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .svg-frame {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            transform-style: preserve-3d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: reactorRotate 4s linear infinite;
+        }
+
+        .svg-frame svg {
+            position: absolute;
+            transition: .5s;
+            z-index: calc(1 - (0.2 * var(--j)));
+            transform-origin: center;
+            width: 344px;
+            height: 344px;
+            fill: none;
+        }
+
+        .svg-frame svg #center {
+            transition: .5s;
+            transform-origin: center;
+            fill: #00aeff;
+            stroke: #00aeff;
+            stroke-width: 2;
+            filter: drop-shadow(0 0 10px #00aeff) drop-shadow(0 0 20px #00aeff);
+        }
+
+        .svg-frame svg path {
+            stroke: #00aeff;
+            stroke-width: 3;
+            transition: .5s;
+            opacity: calc(1 - (0.15 * var(--j)));
+            filter: drop-shadow(0 0 5px #00aeff);
+            stroke-dasharray: 800;
+            stroke-dashoffset: 800;
+            animation: drawCircle 3s ease-in-out forwards, glowPulse 2s ease-in-out infinite;
+            animation-delay: calc(0.3s * var(--j));
+        }
+
+        .loading-text {
+            color: #00aeff;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-shadow:
+                0 0 10px #00aeff,
+                0 0 20px #00aeff;
+            animation: textGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes reactorRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes drawCircle {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 5px #00aeff);
+                opacity: calc(1 - (0.15 * var(--j)));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 15px #00aeff) drop-shadow(0 0 25px #00aeff);
+                opacity: calc(1 - (0.08 * var(--j)));
+            }
+        }
+
+        @keyframes textGlow {
+
+            0%,
+            100% {
+                text-shadow:
+                    0 0 10px #00aeff,
+                    0 0 20px #00aeff;
+            }
+
+            50% {
+                text-shadow:
+                    0 0 20px #00aeff,
+                    0 0 40px #00aeff,
+                    0 0 60px #00aeff;
+            }
+        }
+
+        .arc-reactor {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            animation: reactorPulse 2s ease-in-out infinite;
+        }
+
+        .arc-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #00d9ff, #0099cc);
+            border-radius: 50%;
+            box-shadow:
+                0 0 20px #00d9ff,
+                0 0 40px #00d9ff,
+                0 0 60px #00d9ff,
+                inset 0 0 20px #fff;
+            animation: corePulse 1.5s ease-in-out infinite;
+        }
+
+        .arc-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            border: 2px solid transparent;
+        }
+
+        .arc-ring-1 {
+            width: 60px;
+            height: 60px;
+            margin-top: -30px;
+            margin-left: -30px;
+            border-top-color: #00d9ff;
+            border-right-color: #00d9ff;
+            box-shadow: 0 0 15px #00d9ff;
+            animation: spinClockwise 2s linear infinite;
+        }
+
+        .arc-ring-2 {
+            width: 90px;
+            height: 90px;
+            margin-top: -45px;
+            margin-left: -45px;
+            border-bottom-color: #0099cc;
+            border-left-color: #0099cc;
+            box-shadow: 0 0 20px #0099cc;
+            animation: spinCounterClockwise 3s linear infinite;
+        }
+
+        .arc-ring-3 {
+            width: 120px;
+            height: 120px;
+            margin-top: -60px;
+            margin-left: -60px;
+            border-top-color: #006699;
+            border-right-color: #006699;
+            box-shadow: 0 0 25px #006699;
+            animation: spinClockwise 4s linear infinite;
+        }
+
+        .arc-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00d9ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00d9ff;
+        }
+
+        .arc-particle-1 {
+            top: 0;
+            left: 50%;
+            animation: orbit1 3s linear infinite;
+        }
+
+        .arc-particle-2 {
+            top: 50%;
+            right: 0;
+            animation: orbit2 3s linear infinite;
+        }
+
+        .arc-particle-3 {
+            bottom: 0;
+            left: 50%;
+            animation: orbit3 3s linear infinite;
+        }
+
+        .arc-particle-4 {
+            top: 50%;
+            left: 0;
+            animation: orbit4 3s linear infinite;
+        }
+
+        .loading-text {
+            color: #00d9ff;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-shadow:
+                0 0 10px #00d9ff,
+                0 0 20px #00d9ff;
+            animation: textGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes reactorPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes corePulse {
+
+            0%,
+            100% {
+                box-shadow:
+                    0 0 20px #00d9ff,
+                    0 0 40px #00d9ff,
+                    0 0 60px #00d9ff,
+                    inset 0 0 20px #fff;
+            }
+
+            50% {
+                box-shadow:
+                    0 0 30px #00d9ff,
+                    0 0 60px #00d9ff,
+                    0 0 90px #00d9ff,
+                    inset 0 0 30px #fff;
+            }
+        }
+
+        @keyframes spinClockwise {
+            from {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        @keyframes spinCounterClockwise {
+            from {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+        }
+
+        @keyframes orbit1 {
+            from {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(60px);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(60px);
+            }
+        }
+
+        @keyframes orbit2 {
+            from {
+                transform: translate(-50%, -50%) rotate(90deg) translateX(60px);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(450deg) translateX(60px);
+            }
+        }
+
+        @keyframes orbit3 {
+            from {
+                transform: translate(-50%, -50%) rotate(180deg) translateX(60px);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(540deg) translateX(60px);
+            }
+        }
+
+        @keyframes orbit4 {
+            from {
+                transform: translate(-50%, -50%) rotate(270deg) translateX(60px);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(630deg) translateX(60px);
+            }
+        }
+
+        @keyframes textGlow {
+
+            0%,
+            100% {
+                text-shadow:
+                    0 0 10px #00d9ff,
+                    0 0 20px #00d9ff;
+            }
+
+            50% {
+                text-shadow:
+                    0 0 20px #00d9ff,
+                    0 0 40px #00d9ff,
+                    0 0 60px #00d9ff;
+            }
+        }
     </style>
 </head>
 
 <body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen p-4 md:p-8 pb-24"
     style="padding-bottom: 90px;">
+    <!-- Arc Reactor Loading Spinner -->
+    <div id="arcReactorLoader" class="fixed inset-0 z-[100] flex items-center justify-center"
+        style="background: rgba(31, 31, 32, 0.95); backdrop-filter: blur(10px); display: none;">
+        <div class="arc-reactor-container">
+            <div class="svg-frame">
+                <svg style="--i: 0; --j: 0" viewBox="0 0 344 344">
+                    <path d="M172 50 a122 122 0 1 1 0 244 a122 122 0 1 1 0 -244" stroke-width="3"></path>
+                    <circle id="center" cx="172" cy="172" r="20"></circle>
+                </svg>
+                <svg style="--i: 1; --j: 1" viewBox="0 0 344 344">
+                    <path d="M172 70 a102 102 0 1 1 0 204 a102 102 0 1 1 0 -204" stroke-width="3"></path>
+                </svg>
+                <svg style="--i: 2; --j: 2" viewBox="0 0 344 344">
+                    <path d="M172 90 a82 82 0 1 1 0 164 a82 82 0 1 1 0 -164" stroke-width="3"></path>
+                </svg>
+                <svg style="--i: -1; --j: 3" viewBox="0 0 344 344">
+                    <path d="M172 110 a62 62 0 1 1 0 124 a62 62 0 1 1 0 -124" stroke-width="3"></path>
+                </svg>
+                <svg style="--i: -2; --j: 4" viewBox="0 0 344 344">
+                    <path d="M172 130 a42 42 0 1 1 0 84 a42 42 0 1 1 0 -84" stroke-width="3"></path>
+                </svg>
+            </div>
+            <p class="loading-text">LOADING...</p>
+        </div>
+    </div>
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
@@ -626,6 +977,46 @@
         window.showError = (message) => showToast(message, 'error');
         window.showWarning = (message) => showToast(message, 'warning');
         window.showInfo = (message) => showToast(message, 'info');
+
+        // Arc Reactor Loader Functions
+        const loaderElement = document.getElementById('arcReactorLoader');
+
+        function showLoader() {
+            if (loaderElement) {
+                loaderElement.style.display = 'flex';
+            }
+        }
+
+        function hideLoader() {
+            if (loaderElement) {
+                loaderElement.style.display = 'none';
+            }
+        }
+
+        // Show loader on page navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            hideLoader();
+
+            // Show loader when clicking navigation links
+            document.querySelectorAll('a:not([target="_blank"])').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                        showLoader();
+                    }
+                });
+            });
+        });
+
+        // Intercept fetch requests to show loader
+        const originalFetch = window.fetch;
+        window.fetch = function (...args) {
+            showLoader();
+            return originalFetch.apply(this, args)
+                .finally(() => {
+                    setTimeout(hideLoader, 300);
+                });
+        };
     </script>
 </body>
 
