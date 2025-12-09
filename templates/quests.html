@@ -25,7 +25,10 @@
             <div class="flex items-center space-x-4">
                 <div
                     class="w-14 h-14 bg-cyber-black rounded-lg flex items-center justify-center text-2xl border border-white/10 shadow-inner group-hover:shadow-[0_0_15px_rgba(254,189,17,0.3)] transition-all">
-                    {% if quest.quest_type == 'telegram' %}
+                    {% if quest.logo_url %}
+                    <img src="{{ quest.logo_url }}" alt="Quest Icon"
+                        class="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
+                    {% elif quest.quest_type == 'telegram' %}
                     <i class="fab fa-telegram text-4xl text-blue-400"></i>
                     {% elif quest.quest_type == 'twitter' %}
                     <i class="fab fa-twitter text-4xl text-sky-400"></i>

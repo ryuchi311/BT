@@ -39,6 +39,7 @@ class Quest(db.Model):
     points = db.Column(db.Integer, default=10)
     verification_data = db.Column(db.String(256)) # Link to verify or channel ID
     icon = db.Column(db.String(64), default='star') # Icon name for UI
+    logo_url = db.Column(db.String(256)) # Custom icon URL (e.g. from Flaticon)
     action_url = db.Column(db.String(256)) # URL to perform the action
     category = db.Column(db.String(64)) # Social, Engagement, Educational, Reward
     expires_at = db.Column(db.DateTime) # Expiration date/time
@@ -58,6 +59,7 @@ class Quest(db.Model):
             'points': self.points,
             'quest_type': self.quest_type,
             'icon': self.icon,
+            'logo_url': self.logo_url,
             'action_url': self.action_url,
             'verification_data': self.verification_data,
             'category': self.category,

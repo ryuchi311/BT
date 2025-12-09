@@ -19,6 +19,7 @@ def add_quest():
     category = request.form.get('category')
     action_url = request.form.get('action_url')
     verification_data = request.form.get('verification_data')
+    logo_url = request.form.get('logo_url')
     expires_at_str = request.form.get('expires_at')
     
     # Parse expiration date if provided
@@ -37,6 +38,7 @@ def add_quest():
         category=category,
         action_url=action_url,
         verification_data=verification_data,
+        logo_url=logo_url,
         expires_at=expires_at,
         is_active=True
     )
@@ -57,6 +59,7 @@ def edit_quest(quest_id):
     quest.category = request.form.get('category')
     quest.action_url = request.form.get('action_url')
     quest.verification_data = request.form.get('verification_data')
+    quest.logo_url = request.form.get('logo_url')
     
     expires_at_str = request.form.get('expires_at')
     if expires_at_str:

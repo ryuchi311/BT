@@ -52,7 +52,10 @@
                     {% else %}from-green-600/20 to-green-500/10 border-b border-green-500/20{% endif %}">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-3xl">
-                            {% if quest.quest_type == 'telegram' %}
+                            {% if quest.logo_url %}
+                            <img src="{{ quest.logo_url }}" alt="Icon"
+                                class="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
+                            {% elif quest.quest_type == 'telegram' %}
                             <i class="fab fa-telegram text-blue-400"></i>
                             {% elif quest.quest_type == 'twitter' %}
                             <i class="fab fa-twitter text-sky-400"></i>
@@ -239,6 +242,22 @@
                     </div>
 
                     <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Custom Icon URL (Optional)</label>
+                        <div class="flex gap-4 items-start">
+                            <div class="flex-1">
+                                <input type="url" name="logo_url" id="questLogoUrl"
+                                    class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="https://cdn-icons-png.flaticon.com/512/...">
+                                <p id="logoUrlError" class="text-red-400 text-xs mt-1 hidden"></p>
+                            </div>
+                            <div id="iconPreview"
+                                class="w-12 h-12 bg-white/5 rounded-lg border border-white/10 flex items-center justify-center overflow-hidden hidden">
+                                <img id="iconPreviewImg" src="" alt="Preview" class="w-10 h-10 object-contain">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-gray-300 mb-2">Verification Data
                             (Optional)</label>
                         <input type="text" name="verification_data" id="questVerification"
@@ -316,6 +335,9 @@
                 document.getElementById('questCategory').value = quest.category || '';
                 document.getElementById('questPoints').value = quest.points;
                 document.getElementById('questUrl').value = quest.action_url || '';
+                const logoUrl = quest.logo_url || '';
+                document.getElementById('questLogoUrl').value = logoUrl;
+                validateLogoUrl(logoUrl);
                 document.getElementById('questVerification').value = quest.verification_data || '';
 
                 if (quest.expires_at) {
@@ -410,6 +432,61 @@
                     deleteQuest(id);
                 }
             });
+
+            // Logo URL Validation & Preview
+            const logoUrlInput = document.getElementById('questLogoUrl');
+            const iconPreview = document.getElementById('iconPreview');
+            const iconPreviewImg = document.getElementById('iconPreviewImg');
+            const logoUrlError = document.getElementById('logoUrlError');
+
+            function validateLogoUrl(url) {
+                if (!url) {
+                    iconPreview.classList.add('hidden');
+                    logoUrlError.classList.add('hidden');
+                    return;
+                }
+
+                // Basic URL pattern check
+                try {
+                    new URL(url);
+                } catch (_) {
+                    logoUrlError.textContent = 'Invalid URL format';
+                    logoUrlError.classList.remove('hidden');
+                    iconPreview.classList.add('hidden');
+                    return;
+                }
+
+                // Image extension check (optional, but good for validation)
+                if (!url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)) {
+                    logoUrlError.textContent = 'URL must end with an image extension (.png, .jpg, etc)';
+                    logoUrlError.classList.remove('hidden');
+
+                    // We still try to load it just in case, but show warning
+                } else {
+                    logoUrlError.classList.add('hidden');
+                }
+
+                // Try to load image
+                iconPreviewImg.onerror = function () {
+                    logoUrlError.textContent = 'Failed to load image. Check URL.';
+                    logoUrlError.classList.remove('hidden');
+                    iconPreview.classList.add('hidden');
+                };
+
+                iconPreviewImg.onload = function () {
+                    if (!logoUrlError.textContent.includes('extension')) { // Keep extension warning if present
+                        logoUrlError.classList.add('hidden');
+                    }
+                    iconPreview.classList.remove('hidden');
+                };
+
+                iconPreviewImg.src = url;
+            }
+
+            logoUrlInput.addEventListener('input', (e) => {
+                validateLogoUrl(e.target.value);
+            });
+
             // Bottom navigation button
             const addQuestBtnBottom = document.getElementById('addQuestBtnBottom');
             if (addQuestBtnBottom) {

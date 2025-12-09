@@ -13,8 +13,11 @@
 
             <div class="text-center relative z-10">
                 <div
-                    class="w-20 h-20 mx-auto bg-cyber-black rounded-full flex items-center justify-center mb-4 border border-white/10 shadow-lg">
-                    {% if quest.quest_type == 'youtube' %}
+                    class="w-20 h-20 mx-auto bg-cyber-black rounded-full flex items-center justify-center mb-4 border border-white/10 shadow-lg overflow-hidden">
+                    {% if quest.logo_url %}
+                    <img src="{{ quest.logo_url }}" alt="Quest Icon"
+                        class="w-16 h-16 object-contain drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
+                    {% elif quest.quest_type == 'youtube' %}
                     <i class="fab fa-youtube text-4xl text-red-500"></i>
                     {% elif quest.quest_type == 'visit' %}
                     <i class="fas fa-globe text-4xl text-blue-400"></i>
