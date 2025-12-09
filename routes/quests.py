@@ -14,7 +14,15 @@ def list_quests():
         if user and not user.is_onboarded:
             return redirect(url_for('onboarding.show_onboarding'))
     
-    quests = Quest.query.filter_by(is_active=True).order_by(Quest.id.desc()).all()
+    # Order quests: daily_checkin first, then by newest (id desc)
+    from sqlalchemy import case
+    quests = Quest.query.filter_by(is_active=True).order_by(
+        case(
+            (Quest.quest_type == 'daily_checkin', 0),
+            else_=1
+        ),
+        Quest.id.desc()
+    ).all()
     
     # Get completed quests for this user
     completed_quest_ids = []
