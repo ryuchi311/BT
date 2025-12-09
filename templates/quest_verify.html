@@ -189,8 +189,40 @@
                 </button>
             </div>
 
-            <!-- TWITTER & MANUAL LAYOUT -->
-            {% elif quest.quest_type in ['twitter', 'manual'] %}
+            <!-- TWITTER & MANUAL & TELEGRAM LAYOUT -->
+            {% elif quest.quest_type in ['twitter', 'manual', 'telegram'] %}
+
+            <!-- AUTO TELEGRAM VERIFICATION -->
+            {% if quest.quest_type == 'telegram' and quest.verification_type == 'auto' %}
+            <div id="telegramAutoSection" class="text-center">
+                <div class="mb-8 max-w-lg mx-auto bg-cyber-black/50 border border-blue-400/30 rounded-xl p-6 relative">
+                    <div class="flex items-center gap-4 mb-4 justify-center">
+                        <i class="fab fa-telegram text-5xl text-blue-400 glitch-effect"></i>
+                    </div>
+                    <h3 class="text-white font-bold text-lg mb-2">Connect & Verify</h3>
+                    <p class="text-gray-400 text-sm mb-4">Join our official channel to complete this mission.</p>
+
+                    <div class="flex flex-col gap-3 max-w-xs mx-auto">
+                        <a href="{{ quest.action_url }}" target="_blank"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                            <i class="fab fa-telegram-plane"></i> Join Channel
+                        </a>
+
+                        <button id="checkTelegramBtn"
+                            class="bg-cyber-gold hover:bg-yellow-400 text-cyber-black font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-neon-gold flex items-center justify-center gap-2">
+                            <i class="fas fa-check-circle"></i> Verify Membership
+                        </button>
+                    </div>
+
+                    <div id="tgErrorMessage" class="hidden mt-4 bg-red-500/10 border border-red-500/50 rounded-lg p-3">
+                        <p class="text-red-400 text-xs font-mono uppercase"><i
+                                class="fas fa-exclamation-circle mr-2"></i> <span id="tgErrorText"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANUAL PROOF VERIFICATION (Twitter, Manual, or Manual Telegram) -->
+            {% else %}
             <div id="manualSection" class="text-center">
                 <div class="mb-8 max-w-lg mx-auto bg-cyber-black/50 border border-blue-400/30 rounded-xl p-4 relative">
                     <div class="flex items-center gap-4 mb-2 justify-center">
@@ -214,6 +246,8 @@
                         {% if quest.quest_type == 'manual' %}
                         Upload the screenshot you made and Submit your public Facebook post URL below (required for
                         verification, preventing re-use screenshots & prevents cheating).
+                        {% elif quest.quest_type == 'telegram' %}
+                        Provide the link to your screenshot showing you joined the channel.
                         {% else %}
                         Provide the link to your screenshot below.
                         {% endif %}
@@ -246,6 +280,8 @@
                     </button>
                 </div>
             </div>
+            {% endif %}<!-- End of Auto vs Manual separation -->
+
             {% endif %}
 
         </div>
@@ -464,38 +500,106 @@
             });
         }
     }
-    // --- TWITTER & MANUAL LOGIC ---
-    else if (questType === 'twitter' || questType === 'manual') {
-        const submitProofBtn = document.getElementById('submitProofBtn');
-        if (submitProofBtn) {
-            submitProofBtn.addEventListener('click', async () => {
-                const link = document.getElementById('proofLinkInput').value.trim();
-                if (!link) return showError('LINK REQUIRED');
 
-                submitProofBtn.disabled = true;
-                submitProofBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Submitting...';
+    // --- TELEGRAM AUTO LOGIC ---
+    // Independent check based on element presence
+    const checkTelegramBtn = document.getElementById('checkTelegramBtn');
+    if (checkTelegramBtn) {
+        checkTelegramBtn.addEventListener('click', async () => {
+            const errorDiv = document.getElementById('tgErrorMessage');
+            const errorText = document.getElementById('tgErrorText');
 
-                try {
-                    const res = await fetch(`/quests/submit-proof/${questId}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ proof_link: link })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        showSubmissionReceived();
-                    } else {
-                        showError(data.error);
-                        submitProofBtn.disabled = false;
-                        submitProofBtn.innerHTML = '<i class="fas fa-file-upload mr-2"></i> Submit Proof';
-                    }
-                } catch (e) {
-                    showError('NETWORK ERROR');
-                    submitProofBtn.disabled = false;
-                    submitProofBtn.innerHTML = '<i class="fas fa-file-upload mr-2"></i> Submit Proof';
+            // Reset state
+            checkTelegramBtn.disabled = true;
+            checkTelegramBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            if (errorDiv) errorDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/quests/verify_telegram', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quest_id: questId })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    checkTelegramBtn.classList.remove('bg-cyber-gold', 'text-cyber-black');
+                    checkTelegramBtn.classList.add('bg-green-500', 'text-white');
+                    checkTelegramBtn.innerHTML = '<i class="fas fa-check"></i> Verified!';
+
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    throw new Error(data.message || 'Verification failed');
                 }
-            });
-        }
+            } catch (err) {
+                if (errorDiv && errorText) {
+                    errorText.textContent = err.message;
+                    errorDiv.classList.remove('hidden');
+                }
+                checkTelegramBtn.disabled = false;
+                checkTelegramBtn.innerHTML = '<i class="fas fa-check-circle"></i> Verify Membership';
+            }
+        });
+    }
+
+    // --- MANUAL PROOF LOGIC (Twitter, Manual, Telegram-Manual) ---
+    const submitProofBtn = document.getElementById('submitProofBtn');
+    if (submitProofBtn) {
+        submitProofBtn.addEventListener('click', async () => {
+            const input = document.getElementById('proofLinkInput') || document.getElementById('proofLink'); // Handle ID naming variation
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            if (!input) return;
+
+            const link = input.value.trim();
+
+            if (errorDiv) errorDiv.classList.add('hidden');
+
+            if (!link) {
+                showError('Please enter a valid link');
+                return;
+            }
+
+            // Basic URL validation
+            try {
+                new URL(link);
+            } catch (_) {
+                showError('Please enter a valid URL (e.g. https://...)');
+                return;
+            }
+
+            submitProofBtn.disabled = true;
+            submitProofBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            try {
+                const response = await fetch(`/quests/submit-proof/${questId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ proof_link: link })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSubmissionReceived();
+                    submitProofBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    submitProofBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    submitProofBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Submitted';
+
+                    setTimeout(() => submitProofBtn.remove(), 1000);
+
+                } else {
+                    throw new Error(data.error || 'Submission failed');
+                }
+            } catch (err) {
+                showError(err.message);
+                submitProofBtn.disabled = false;
+                submitProofBtn.innerHTML = 'Submit Proof';
+            }
+        });
     }
 
     function showError(msg) {

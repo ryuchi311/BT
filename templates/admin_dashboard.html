@@ -163,7 +163,7 @@
     </div>
 
     <!-- Add/Edit Quest Modal -->
-    <div id="questModal" class="modal fixed inset-0 z-50 items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div id="questModal" class="modal fixed inset-0 z-[60] items-center justify-center bg-black/70 backdrop-blur-sm">
         <div
             class="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-2xl p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-6">
@@ -204,6 +204,22 @@
                                 Check-In</option>
                             <option value="manual" style="background-color: #1f2937; color: white;">✋ Manual</option>
                         </select>
+                    </div>
+
+                    <div id="verificationTypeContainer" class="hidden">
+                        <label class="block text-sm font-semibold text-gray-300 mb-2">Verification Type *</label>
+                        <select name="verification_type" id="questVerificationType"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            style="color: white;">
+                            <option value="auto" style="background-color: #1f2937; color: white;">🤖 Automated (Bot)
+                            </option>
+                            <option value="manual" style="background-color: #1f2937; color: white;">✋ Manual
+                                (Screenshot)</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">
+                            <span id="autoHelp" class="hidden">Requires Telegram Bot to be admin in your channel.</span>
+                            <span id="manualHelp" class="hidden">User uploads a screenshot proof.</span>
+                        </p>
                     </div>
 
                     <div>
@@ -340,6 +356,19 @@
                 validateLogoUrl(logoUrl);
                 document.getElementById('questVerification').value = quest.verification_data || '';
 
+                // Set verification type if exists, default to 'manual' if not set but platform is Telegram?
+                // Actually model has 'verification_type', defaulting to 'auto'.
+                // If it's a legacy quest, it might be 'auto' by default model, but we should treat as 'manual' if we want...
+                // But let's just trust the value.
+                if (quest.verification_type) {
+                    document.getElementById('questVerificationType').value = quest.verification_type;
+                } else {
+                    document.getElementById('questVerificationType').value = 'auto'; // Default
+                }
+
+                // Update UI visibility
+                updateVerificationUI();
+
                 if (quest.expires_at) {
                     const date = new Date(quest.expires_at);
                     // Format for datetime-local: YYYY-MM-DDThh:mm
@@ -435,62 +464,69 @@
 
             // Logo URL Validation & Preview
             const logoUrlInput = document.getElementById('questLogoUrl');
-            const iconPreview = document.getElementById('iconPreview');
-            const iconPreviewImg = document.getElementById('iconPreviewImg');
-            const logoUrlError = document.getElementById('logoUrlError');
-
-            function validateLogoUrl(url) {
-                if (!url) {
-                    iconPreview.classList.add('hidden');
-                    logoUrlError.classList.add('hidden');
-                    return;
-                }
-
-                // Basic URL pattern check
-                try {
-                    new URL(url);
-                } catch (_) {
-                    logoUrlError.textContent = 'Invalid URL format';
-                    logoUrlError.classList.remove('hidden');
-                    iconPreview.classList.add('hidden');
-                    return;
-                }
-
-                // Image extension check (optional, but good for validation)
-                if (!url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)) {
-                    logoUrlError.textContent = 'URL must end with an image extension (.png, .jpg, etc)';
-                    logoUrlError.classList.remove('hidden');
-
-                    // We still try to load it just in case, but show warning
-                } else {
-                    logoUrlError.classList.add('hidden');
-                }
-
-                // Try to load image
-                iconPreviewImg.onerror = function () {
-                    logoUrlError.textContent = 'Failed to load image. Check URL.';
-                    logoUrlError.classList.remove('hidden');
-                    iconPreview.classList.add('hidden');
-                };
-
-                iconPreviewImg.onload = function () {
-                    if (!logoUrlError.textContent.includes('extension')) { // Keep extension warning if present
-                        logoUrlError.classList.add('hidden');
-                    }
-                    iconPreview.classList.remove('hidden');
-                };
-
-                iconPreviewImg.src = url;
-            }
-
-            logoUrlInput.addEventListener('input', (e) => {
-                validateLogoUrl(e.target.value);
-            });
-
-            // Bottom navigation button
             const addQuestBtnBottom = document.getElementById('addQuestBtnBottom');
+
             if (addQuestBtnBottom) {
                 addQuestBtnBottom.addEventListener('click', openAddModal);
+            }
+
+            // --- MISSING FUNCTIONS RESTORED ---
+
+            function updateVerificationUI() {
+                const platform = document.getElementById('questPlatform').value;
+                const typeContainer = document.getElementById('verificationTypeContainer');
+                const verifyType = document.getElementById('questVerificationType').value;
+                const autoHelp = document.getElementById('autoHelp');
+                const manualHelp = document.getElementById('manualHelp');
+
+                if (platform === 'telegram') {
+                    typeContainer.classList.remove('hidden');
+                    if (verifyType === 'auto') {
+                        autoHelp.classList.remove('hidden');
+                        manualHelp.classList.add('hidden');
+                    } else {
+                        autoHelp.classList.add('hidden');
+                        manualHelp.classList.remove('hidden');
+                    }
+                } else {
+                    typeContainer.classList.add('hidden');
+                }
+            }
+
+            function validateLogoUrl(url) {
+                const previewDiv = document.getElementById('iconPreview');
+                const previewImg = document.getElementById('iconPreviewImg');
+                const errorP = document.getElementById('logoUrlError');
+
+                if (!url) {
+                    previewDiv.classList.add('hidden');
+                    errorP.classList.add('hidden');
+                    return;
+                }
+
+                // Simple check for image extension
+                if (!url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) && !url.includes('cdn-icons-png')) {
+                    // warning but don't blocking
+                }
+
+                previewImg.src = url;
+                previewDiv.classList.remove('hidden');
+                errorP.classList.add('hidden');
+
+                previewImg.onerror = function () {
+                    previewDiv.classList.add('hidden');
+                    errorP.textContent = 'Invalid image URL or image not found';
+                    errorP.classList.remove('hidden');
+                };
+            }
+
+            // Event Listeners for UI Logic
+            document.getElementById('questPlatform').addEventListener('change', updateVerificationUI);
+            document.getElementById('questVerificationType').addEventListener('change', updateVerificationUI);
+
+            if (logoUrlInput) {
+                logoUrlInput.addEventListener('input', (e) => validateLogoUrl(e.target.value));
+                logoUrlInput.addEventListener('change', (e) => validateLogoUrl(e.target.value));
             }
         });
     </script>
@@ -522,7 +558,7 @@
         </div>
     </div>
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-20 right-4 z-[60] space-y-3"></div>
+    <div id="toast-container" class="fixed top-20 right-4 z-[70] space-y-3"></div>
 
     <script>
         // Toast Notification System

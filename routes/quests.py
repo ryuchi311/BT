@@ -270,3 +270,77 @@ def submit_proof(quest_id):
         'success': True, 
         'message': 'Proof submitted successfully. Review pending.'
     })
+
+@quests_bp.route('/verify_telegram', methods=['POST'])
+def verify_telegram():
+    """Verify Telegram channel membership via Bot API"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    quest_id = data.get('quest_id')
+    
+    quest = Quest.query.get_or_404(quest_id)
+    user = User.query.get(user_id)
+    
+    # Pre-checks
+    if quest.quest_type != 'telegram':
+         return jsonify({'status': 'error', 'message': 'Invalid quest type'}), 400
+         
+    if not user.telegram_id or 'email_' in user.telegram_id: # Basic check for fake ID
+        # In a real app we'd prompt them to link account
+        return jsonify({'status': 'error', 'message': 'No Telegram account linked. Please go to Profile > Connect Telegram.'}), 400
+
+    # Get Bot Token from System Settings
+    from models import SystemSetting
+    token_setting = SystemSetting.query.filter_by(key='telegram_bot_token').first()
+    if not token_setting or not token_setting.value:
+        return jsonify({'status': 'error', 'message': 'System misconfigured: Missing Bot Token'}), 500
+    
+    bot_token = token_setting.value
+    
+    # Get Channel ID from verification_data
+    # Admin should enter something like "@channelname" or "-100123456789"
+    channel_id = quest.verification_data
+    if not channel_id:
+        return jsonify({'status': 'error', 'message': 'Quest misconfigured: Missing Channel ID'}), 500
+        
+    # Call Telegram API
+    import requests
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/getChatMember"
+        params = {'chat_id': channel_id, 'user_id': user.telegram_id}
+        resp = requests.get(url, params=params, timeout=5)
+        result = resp.json()
+        
+        if not result.get('ok'):
+             return jsonify({'status': 'error', 'message': f"Telegram API Error: {result.get('description')}"}), 400
+             
+        status = result.get('result', {}).get('status')
+        # Valid statuses: creator, administrator, member, restricted (if is_member is true)
+        if status in ['creator', 'administrator', 'member'] or (status == 'restricted' and result.get('result', {}).get('is_member', False)):
+            
+            # Success! Award points
+            existing = UserQuest.query.filter_by(user_id=user_id, quest_id=quest_id).first()
+            if existing and existing.status == 'completed':
+                 return jsonify({'status': 'success', 'message': 'Already completed'})
+            
+            if not existing:
+                uq = UserQuest(user_id=user_id, quest_id=quest_id, status='completed', completed_at=datetime.utcnow())
+                db.session.add(uq)
+            else:
+                existing.status = 'completed'
+                existing.completed_at = datetime.utcnow()
+                
+            user.points += quest.points
+            user.xp += quest.points
+            db.session.commit()
+            
+            return jsonify({'status': 'success'})
+            
+        else:
+            return jsonify({'status': 'error', 'message': f'You are not a member. Status: {status}'}), 400
+            
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Verification server error: {str(e)}'}), 500
