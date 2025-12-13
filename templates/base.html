@@ -441,23 +441,27 @@
         class="fixed inset-0 z-[100] flex items-center justify-center bg-cyber-black/95 backdrop-blur-md"
         style="display: none;">
         <div class="arc-reactor-container">
-            <div class="svg-frame">
-                <svg style="--i: 0; --j: 0" viewBox="0 0 344 344">
-                    <path d="M172 50 a122 122 0 1 1 0 244 a122 122 0 1 1 0 -244" stroke-width="3"></path>
-                    <circle id="center" cx="172" cy="172" r="20"></circle>
-                </svg>
-                <svg style="--i: 1; --j: 1" viewBox="0 0 344 344">
-                    <path d="M172 70 a102 102 0 1 1 0 204 a102 102 0 1 1 0 -204" stroke-width="3"></path>
-                </svg>
-                <svg style="--i: 2; --j: 2" viewBox="0 0 344 344">
-                    <path d="M172 90 a82 82 0 1 1 0 164 a82 82 0 1 1 0 -164" stroke-width="3"></path>
-                </svg>
-                <svg style="--i: -1; --j: 3" viewBox="0 0 344 344">
-                    <path d="M172 110 a62 62 0 1 1 0 124 a62 62 0 1 1 0 -124" stroke-width="3"></path>
-                </svg>
-                <svg style="--i: -2; --j: 4" viewBox="0 0 344 344">
-                    <path d="M172 130 a42 42 0 1 1 0 84 a42 42 0 1 1 0 -84" stroke-width="3"></path>
-                </svg>
+            <div class="relative flex items-center justify-center">
+                <img src="{{ url_for('static', filename='images/bt-logo-circle.png') }}"
+                    class="absolute z-10 w-14 h-14 object-contain rounded-full drop-shadow-[0_0_10px_rgba(254,189,17,0.8)]"
+                    alt="Loading...">
+                <div class="svg-frame">
+                    <svg style="--i: 0; --j: 0" viewBox="0 0 344 344">
+                        <path d="M172 50 a122 122 0 1 1 0 244 a122 122 0 1 1 0 -244" stroke-width="3"></path>
+                    </svg>
+                    <svg style="--i: 1; --j: 1" viewBox="0 0 344 344">
+                        <path d="M172 70 a102 102 0 1 1 0 204 a102 102 0 1 1 0 -204" stroke-width="3"></path>
+                    </svg>
+                    <svg style="--i: 2; --j: 2" viewBox="0 0 344 344">
+                        <path d="M172 90 a82 82 0 1 1 0 164 a82 82 0 1 1 0 -164" stroke-width="3"></path>
+                    </svg>
+                    <svg style="--i: -1; --j: 3" viewBox="0 0 344 344">
+                        <path d="M172 110 a62 62 0 1 1 0 124 a62 62 0 1 1 0 -124" stroke-width="3"></path>
+                    </svg>
+                    <svg style="--i: -2; --j: 4" viewBox="0 0 344 344">
+                        <path d="M172 130 a42 42 0 1 1 0 84 a42 42 0 1 1 0 -84" stroke-width="3"></path>
+                    </svg>
+                </div>
             </div>
             <p class="loading-text">LOADING...</p>
         </div>
