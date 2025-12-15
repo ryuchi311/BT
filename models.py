@@ -14,6 +14,14 @@ class User(db.Model):
     is_onboarded = db.Column(db.Boolean, default=False)  # Has completed onboarding
     terms_accepted = db.Column(db.Boolean, default=False)  # Has accepted terms
     terms_accepted_at = db.Column(db.DateTime)  # When terms were accepted
+    
+    # Social Media Handles/Links
+    twitter_handle = db.Column(db.String(64), nullable=True)
+    discord_id = db.Column(db.String(64), nullable=True)
+    facebook_profile = db.Column(db.String(256), nullable=True)
+    instagram_profile = db.Column(db.String(256), nullable=True)
+    youtube_handle = db.Column(db.String(64), nullable=True)
+    
     xp = db.Column(db.Integer, default=0)
     points = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -28,7 +36,12 @@ class User(db.Model):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'xp': self.xp,
-            'points': self.points
+            'points': self.points,
+            'twitter_handle': self.twitter_handle,
+            'discord_id': self.discord_id,
+            'facebook_profile': self.facebook_profile,
+            'instagram_profile': self.instagram_profile,
+            'youtube_handle': self.youtube_handle
         }
 
 class Quest(db.Model):
